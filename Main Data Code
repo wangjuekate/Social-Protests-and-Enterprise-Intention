@@ -1,0 +1,1873 @@
+#use Data
+
+
+use "F:\All_Projects\Project_Lori_SocialMovementImpact\3_FinalDataset\CountyPanel20142016\Panel20142016.dta", clear
+
+#Add DV
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Firm Application_2014_2016\Application.dta"
+
+
+
+drop  _merge
+
+#Add IV
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Moderatesur2016.dta"
+
+drop  _merge
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\RadicalSurveillance2016.dta"
+
+drop  _merge
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Shooting2016.dta"
+
+drop  _merge
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\ProtestSurveillance2016.dta"
+
+drop  _merge
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Radicalmili2016.dta"
+
+drop  _merge
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Moderatemili2016.dta"
+
+drop  _merge
+
+gen percapita= taxgrossincome/TotalPop
+
+egen newid = group( year month)
+
+egen statecountycluster = group ( statefips countyfips)
+
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Accidents\Accidents2016.dta"
+drop  _merge
+
+
+merge m:1 statefips countyfips using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\PTSD_PostWar Centers\postwar.dta"
+drop  _merge
+
+
+merge m:1 statefips countyfips using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Gun restrictions\Gunrestrictions.dta"
+drop  _merge
+
+
+
+
+#De Novo Firm
+#Radical 
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Firm Application_2014_2016\OtherAdoption.dta"
+drop  _merge
+
+
+merge m:1 statefips countyfips using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\County Economic Environment\CountyYearEcon.dta"
+drop  _merge
+
+
+gen Ndenovo = Napplication- NUniveristy -publicadoption-NDealio
+replace Ndenovo =0 if Ndenovo <0
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Regulations\Stateregulation2016.dta"
+drop  _merge
+
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Regulations\CombineDroneRegulation.dta"
+drop  _merge
+
+
+#Add hobbyists
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Hobbyist\Hobbyistmerge.dta"
+drop  _merge
+
+#Add Pilots
+merge m:1 statefips countyfips using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\PilotsDrone\pilots.dta"
+drop  _merge
+
+
+#Add clients
+merge m:1 statefips countyfips year using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Clients\clients.dta"
+drop  _merge
+
+
+#Add Manufactures
+merge m:1 statefips countyfips using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Manufacture\dronemanufacture.dta"
+drop  _merge
+
+
+
+
+
+
+drop residualwar
+regress   radicalmili_2m postwartreatment  cumuapply   NUniveristy i.statefips i.newid
+
+predict residualwar ,residual
+
+drop residual
+
+regress   radicalsur_2m  accidents_1m Totalpop  NUniveristy i.statefips i.newid
+
+predict residual ,residual
+
+xtset  newid statecountycluster
+
+
+gen gdp  = irs130208d/1000000
+gen Totalpop = totalpop /1000000
+
+sum NDealio Ndenovo military   radicalsur_2m  pubprotest_2m  Allprivacy Allsecurity cumuapply  accidents_2m  unemploymentrate gdp Totalpop 
+
+cor NDealio Ndenovo   military   radicalsur_2m  pubprotest_2m  Allprivacy Allsecurity cumuapply  accidents_2m  unemploymentrate gdp Totalpop 
+
+
+esttab model1 model2 model3 model4 model5 model6 using ier.rtf, se sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
+
+#merge weatherIV
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\AttachRain Temperature_IV\rainfallCounty.dta"
+drop  _merge
+
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\AttachRain Temperature_IV\temperatureCounty.dta"
+drop  _merge
+
+
+# Construct the IV
+
+regress  radicalsur_2m  temperature i.(year) i.statefips
+predict temperatureIV
+regress   moderatesur_2m  temperature i.(year) i.statefips
+predict temperatureIVmoderatesur
+regress   radicalmili_2m  temperature i.(year) i.statefips
+predict temperatureIVradicalmili
+
+regress   institutionsur_2m  temperature i.(year) i.statefips
+predict temperatureIVinstitutional
+
+
+#Add the diversity
+
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Combine_protestdiversity_lag.dta"
+drop  _merge
+
+
+# nonCalifornia surveillance negative
+non California military positive
+
+#California surveillance positive
+military negative
+
+#Add institutions
+merge 1:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Drone Related Protests\Institutionalsur2016.dta"
+drop  _merge
+
+
+merge m:1 statefips countyfips year month using "F:\All_Projects\Project_Lori_SocialMovementImpact\2_VariableList\Surveillance Lawsuits_2006_2013\surveillancesuit.dta"
+drop  _merge
+
+
+
+esttab model1 model2 model3 model4 model5 model6 model7 model8 using ier.rtf, se sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
+
+sum totalApplication  Ndenovo  NDealio   radicalmili_2m   radicalsur_2m  moderatesur_2m   institutionsur_2m diversity_2m  temperature dronemanufacture droneclient  privacy  california    NUniveristy  Nhobbyist  cumuapply  security accidents_1m  gdppercap Totalpop  totalpilots   publicadoption
+
+cor totalApplication  Ndenovo  NDealio   radicalmili_2m   radicalsur_2m  moderatesur_2m   institutionsur_2m diversity_2m  temperature dronemanufacture droneclient  privacy  california    NUniveristy  Nhobbyist  cumuapply  security accidents_1m  gdppercap Totalpop  totalpilots   publicadoption
+
+gen gdppercap = gdp/Totalpop
+
+
+***********************************************************
+Main Model
+1) too many zeros: zero inflated
+2) count variable: poisson model 
+3) interdependence between de alio and de novo firms, joint probit and joint poisson
+4) independence among the treatments (using IV to deal with it)
+
+***********************************************************
+
+gen totalApplication =  NDealio+ Ndenovo
+
+zinb Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model1
+
+
+zinb Ndenovo  temperatureIVradicalmili    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model2
+
+
+zinb Ndenovo   temperatureIV    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model3
+
+
+zinb Ndenovo   temperatureIVmoderatesur dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model4
+
+
+zinb Ndenovo  temperatureIVinstitutional    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model5
+
+zinb Ndenovo   temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional  c.( temperatureIV)#c.(temperatureIVmoderatesur)   dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model6
+
+zinb Ndenovo   temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional  c.( temperatureIV)#c.(temperatureIVinstitutional ) temperaturecat rainfallcut  Number_of_Lawsuits   AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model7
+
+zinb totalApplication   temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional  c.( temperatureIVmoderatesur)#c.(temperatureIVinstitutional ) temperaturecat rainfallcut  Number_of_Lawsuits   AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model8
+
+zinb totalApplication   temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional  c.( temperatureIVmoderatesur)#c.(temperatureIVinstitutional ) temperaturecat rainfallcut  Number_of_Lawsuits   AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model9
+
+zinb totalApplication     diversityIV dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model10
+
+
+
+
+zinb  NDealio temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIVmoderatesur )#c.(temperatureIVinstitutional)   dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots Ndenovo  , inflate(  Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+
+***********************************************************
+Main Model with de novo and de alio separately estimated
+***********************************************************
+
+
+zinb Ndenovo   NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model3
+
+zinb  NDealio Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model4
+
+
+zinb Ndenovo temperatureIVradicalmili    NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model5
+
+zinb  NDealio temperatureIVradicalmili  Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model6
+
+
+zinb Ndenovo temperatureIV   NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  NDealio dronemanufacture droneclient privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model7
+
+zinb  NDealio temperatureIV  Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model8
+
+
+zinb Ndenovo temperatureIVmoderatesur   NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model9
+
+zinb  NDealio temperatureIVmoderatesur  Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model10
+
+zinb Ndenovo temperatureIVinstitutional  NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model11
+
+zinb  NDealio temperatureIVinstitutional  Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+
+est sto model12
+
+
+
+zinb Ndenovo temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIV)#c.(temperatureIVmoderatesur)     dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots NDealio  , inflate(  NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model3
+
+zinb  NDealio temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIV)#c.(temperatureIVmoderatesur)     dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots Ndenovo , inflate(  Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+
+est sto model4
+
+
+zinb Ndenovo temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIV )#c.(temperatureIVinstitutional)    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots   NDealio, inflate(  NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model5
+
+zinb  NDealio temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIV )#c.(temperatureIVinstitutional)    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots Ndenovo , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+
+est sto model6
+
+
+zinb Ndenovo temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIVmoderatesur )#c.(temperatureIVinstitutional)     dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots NDealio , inflate(NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model7
+
+zinb  NDealio temperatureIV  temperatureIVmoderatesur temperatureIVinstitutional c.(temperatureIVmoderatesur )#c.(temperatureIVinstitutional)   dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots Ndenovo  , inflate(  Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+
+est sto model8
+
+
+
+
+esttab model3  model7  using ier.rtf, se sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
+
+# Diversity drop the places without diversity
+
+
+drop diversityIV
+replace diversity_4m =1- diversity_4m
+replace diversity_4m=. if diversity_4m ==0
+
+
+regress diversity_4m temperature i.(year) i.statefips
+predict diversityIV
+
+
+zinb Ndenovo  diversityIV NDealio  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( NDealio dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust iter(20)
+
+est sto model1
+
+zinb  NDealio   diversityIV Ndenovo  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate( Ndenovo dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust iter(20)
+
+est sto model2
+
+
+***********************************************************
+Transform into linear forms
+
+***********************************************************
+gen logdealio = log(NDealio) if  NDealio !=0
+
+gen logdenovo = log(Ndenovo) if  Ndenovo !=0
+
+cmp( dnovo = dronemanufacture droneclient   gdppercap  Totalpop  totalpilots)( daliotest =dronemanufacture droneclient    gdppercap  Totalpop  totalpilots)( logdealio  = temperatureIVinstitutional temperatureIV temperatureIVradicalmili temperatureIVmoderatesur dronemanufacture droneclient   gdppercap  Totalpop  totalpilots)( logdenovo = temperatureIVinstitutional temperatureIV temperatureIVradicalmili temperatureIVmoderatesur dronemanufacture droneclient    gdppercap  Totalpop  totalpilots), indicators($cmp_probit  $cmp_probit $cmp_cont  $cmp_cont ) quietly  robust
+
+
+cmp( logdealio  = temperatureIVinstitutional temperatureIV temperatureIVradicalmili temperatureIVmoderatesur dronemanufacture droneclient   gdppercap  Totalpop  totalpilots)( logdenovo = temperatureIVinstitutional temperatureIV temperatureIVradicalmili temperatureIVmoderatesur dronemanufacture droneclient    gdppercap  Totalpop  totalpilots), indicators($cmp_cont  $cmp_cont ) quietly  robust
+
+est sto model1
+
+
+***********************************************************
+Differences in Differences
+1) random assign: probit model by day, interdependence among different events
+2) treatment and control match: inverse probability weighting by county treatment day, inverse probability matching
+3) multiple treatment: isolated, short term of time only one event happened. (select optimal time interval) Markov assumption, the impact does not last beyond the period. 
+
+***********************************************************
+
+cmp( moderatesur_2m = dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots)(radicalsur_2m=dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots)(radicalmili_2m= dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots)( institutionsur_2m= dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots), indicators($cmp_probit  $cmp_probit $cmp_probit $cmp_probit) quietly robust
+
+
+cmp( moderatesur_2m = dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots)(radicalsur_2m=dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots)( institutionsur_2m= dronemanufacture droneclient  cityprivacy  california  publicadoption Nhobbyist  cumuapply accidents_2m  gdppercap  Totalpop  totalpilots), indicators($cmp_probit  $cmp_probit $cmp_probit) quietly robust
+
+
+
+
+***********************************************************
+Extreme case study: Synthetic Control
+1) choose Los Angeles
+2) Slice and match Los Angeles
+***********************************************************
+
+drop temperaturecat
+egen  temperaturecat = cut( temperature), at(-100, -20,10,20,30,40, 50,100,150)
+replace temperaturecat=0 if mi(temperaturecat)
+replace temperaturecat= temperaturecat+100
+
+
+drop rainfallcut
+egen  rainfallcut= cut( rainfall), at(10,100,500,1000,2000,3000, 5000)
+replace  rainfallcut=0 if mi( rainfallcut)
+
+#test different Instrumental variables
+
+regress  radicalmili_2m i.( temperaturecat)   i.(rainfallcut)    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots i.statefips i.newid
+
+est sto model1
+drop temperatureIVradicalmili
+predict temperatureIVradicalmili
+
+regress  radicalsur_2m i.( temperaturecat)   i.(rainfallcut)   gunrestrict  AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots i.statefips i.newid
+
+est sto model2
+drop temperatureIV
+predict temperatureIV
+
+regress   moderatesur_2m i.( temperaturecat) i.(rainfallcut)   gunrestrict  AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots i.statefips i.newid
+
+est sto model3
+drop  temperatureIVmoderatesur
+predict  temperatureIVmoderatesur
+
+regress   institutionsur_2m i.( temperaturecat)   i.(rainfallcut)   gunrestrict  AntigunMov  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots i.statefips i.newid
+
+est sto model4
+drop  temperatureIVinstitutional
+predict  temperatureIVinstitutional
+
+temperaturecat rainfallcut gunrestrict  AntigunMov
+
+esttab model1 model2 model3  model4  using ier.rtf,   se  ar2 scalars(F ll ) star(* 0.05 ** 0.01 *** 0.001) replace
+
+
+i.statefips   i.newid
+
+********************************************************************
+reduced form regression
+*******************************************************************
+temperaturecat   rainfallcut  gunrestrict  AntigunMov   
+
+zinb totalApplication    radicalmili_3m   dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust iter(10)
+
+est sto model1
+
+zinb totalApplication   radicalsur_4m     dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model2
+
+zinb totalApplication    moderatesur_4m    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model3
+
+zinb totalApplication   institutionsur_4m    dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model4
+
+zinb totalApplication   radicalsur_4m moderatesur_4m institutionsur_4m  c.(radicalsur_4m)#c.(institutionsur_4m )   dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model5
+
+zinb totalApplication    radicalsur_4m moderatesur_4m institutionsur_4m  c.(  moderatesur_4m)#c.(institutionsur_4m)  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  gdppercap  Totalpop  totalpilots , inflate(  dronemanufacture droneclient  privacy  california  publicadoption   NUniveristy  Nhobbyist  cumuapply  security accidents_2m  ) cluster( statecountycluster) robust
+
+est sto model6
+
+***********************************************************************
+Read the data into R
+***********************************************************************
+library(foreign)
+fulldata<-read.dta("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Newdata20180621.dta")
+library(MCMCglmm)
+
+
+
+results<-MCMCglmm(cbind(NDealio,Ndenovo)~
+at.level(trait,1):radicalsur_3m+
+at.level(trait,1):moderatesur_3m+
+at.level(trait,1):institutionsur_3m+
+at.level(trait,1):allradical_4m+
+at.level(trait,1):moderatesur_3m*at.level(trait,1):allradical_4m+
+at.level(trait,1):institutionsur_3m*at.level(trait,1):allradical_4m+
+at.level(trait,1):radicalsur_3m*at.level(trait,1):cumupublicadoption+
+at.level(trait,1):moderatesur_3m*at.level(trait,1):cumupublicadoption+
+at.level(trait,1):institutionsur_3m*at.level(trait,1):cumupublicadoption+
+at.level(trait,1):radicalsur_3m*at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):moderatesur_3m*at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):institutionsur_3m*at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):cumupublicadoption+
+at.level(trait,1):cumudenovo+
+at.level(trait,1):Ndealio_p1  +
+at.level(trait,1):radicalmili_4m+
+at.level(trait,1):accidents_1m+
+at.level(trait,1):dronemanufacture+
+at.level(trait,1):NUniveristy+
+at.level(trait,1):logpilots+
+at.level(trait,1):security+
+at.level(trait,1):privacy + 
+at.level(trait,1):california+  
+at.level(trait,1):gdppercap  +
+at.level(trait,1):Totalpop+
+
+at.level(trait,2):dronemanufacture+
+at.level(trait,2):NUniveristy+
+at.level(trait,2):logpilots+
+at.level(trait,2):security+
+at.level(trait,2):privacy + 
+at.level(trait,2):california+  
+at.level(trait,2):gdppercap  +
+at.level(trait,2):Totalpop+
+
+at.level(trait,3):radicalsur_3m+
+at.level(trait,3):moderatesur_3m+
+at.level(trait,3):institutionsur_3m+
+at.level(trait,3):allradical_4m+
+at.level(trait,3):moderatesur_3m*at.level(trait,3):allradical_4m+
+at.level(trait,3):institutionsur_3m*at.level(trait,3):allradical_4m+
+at.level(trait,3):radicalsur_3m*at.level(trait,3):cumupublicadoption+
+at.level(trait,3):moderatesur_3m*at.level(trait,3):cumupublicadoption+
+at.level(trait,3):institutionsur_3m*at.level(trait,3):cumupublicadoption+
+at.level(trait,3):radicalsur_3m*at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):moderatesur_3m*at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):institutionsur_3m*at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):cumupublicadoption+
+at.level(trait,3):cumudenovo+
+at.level(trait,3):Ndealio_p1  +
+at.level(trait,3):radicalmili_4m+
+at.level(trait,3):accidents_1m+
+at.level(trait,3):dronemanufacture+
+at.level(trait,3):NUniveristy+
+at.level(trait,3):logpilots+
+at.level(trait,3):security+
+at.level(trait,3):privacy + 
+at.level(trait,3):california+  
+at.level(trait,3):gdppercap  +
+at.level(trait,3):Totalpop+
+
+
+at.level(trait,4):dronemanufacture+
+at.level(trait,4):NUniveristy+
+at.level(trait,4):logpilots+
+at.level(trait,4):security+
+at.level(trait,4):privacy + 
+at.level(trait,4):california+  
+at.level(trait,4):gdppercap+
+at.level(trait,4):Totalpop,random =~us(trait):statecountycluster,rcov= ~us(trait):units, family =rep("zipoisson",2),
+nitt=7000,burnin=3000,thin=25,data=fulldata)
+summary(results)
+
+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+*****************************************************
+merge interaction for radical
+*******************************************************
+
+library(foreign)
+fulldata<-read.dta("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Newdata20180621.dta")
+library(pscl)
+fulldata$logpilots<-log(fulldata$totalpilots+1)
+
+Addallradical<-read.dta("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\2_VariableList\\Drone Related Protests\\Allradicalprotest.dta")
+
+fulldata<-merge(fulldata,Addallradical,
+by.x=c("year","month","statefips","countyfips"),
+by.y=c("year","month","statefips","countyfips"),
+all.x=TRUE
+)
+
+write.dta(fulldata,file="D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Newdata20180621.dta")
+
+fulldata$allradical_3m<-fulldata$radicalsur_3m+fulldata$radicalmili_3m
+
+
+
+
+
+results1<-zeroinfl(Ndenovo~
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+
+results1<-zeroinfl(Ndenovo~
+radicalsur_3m+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+
+
+results1<-zeroinfl(Ndenovo~
+moderatesur_3m+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+results1<-zeroinfl(Ndenovo~
+institutionsur_3m+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+results1<-zeroinfl(Ndenovo~
+radicalsur_3m+
+allradical_4m+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+results1<-zeroinfl(Ndenovo~
+moderatesur_3m+
+radicalsur_3m+
+institutionsur_3m+
+allradical_4m+
+allradical_4m*moderatesur_3m+
+allradical_4m*institutionsur_3m+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+results1<-zeroinfl(Ndenovo~
+moderatesur_3m+
+radicalsur_3m+
+institutionsur_3m+
+moderatesur_3m*cumupublicadoption+
+radicalsur_3m*cumupublicadoption+
+institutionsur_3m*cumupublicadoption+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+results1<-zeroinfl(Ndenovo~
+moderatesur_3m+
+radicalsur_3m+
+institutionsur_3m+
+moderatesur_3m*Hobbyist_p1+
+radicalsur_3m*Hobbyist_p1+
+institutionsur_3m*Hobbyist_p1+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+summary(results1)
+
+
+
+results1<-zeroinfl(Ndenovo~
+
+
+moderatesur_3m+
+radicalsur_3m+
+institutionsur_3m+
+
+allradical_4m+
+allradical_4m*moderatesur_3m+
+allradical_4m*institutionsur_3m+
+
+
+moderatesur_3m*cumupublicadoption+
+radicalsur_3m*cumupublicadoption+
+institutionsur_3m*cumupublicadoption+
+
+moderatesur_3m*Hobbyist_p1+
+radicalsur_3m*Hobbyist_p1+
+institutionsur_3m*Hobbyist_p1+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+results<-zeroinfl(Ndenovo~
+
+temperatureIV  +
+temperatureIVmoderatesur+
+temperatureIVinstitutional+
+
+allradical_3m+
+allradical_3m*temperatureIVmoderatesur+
+allradical_3m*temperatureIVinstitutional+
+
+temperatureIVmoderatesur*cumupublicadoption+
+temperatureIV *cumupublicadoption+
+temperatureIVinstitutional*cumupublicadoption+
+
+temperatureIVmoderatesur*Hobbyist_p1+
+temperatureIV*Hobbyist_p1+
+temperatureIVinstitutional*Hobbyist_p1+
+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+summary(results)
+
+*************************************************
+more than one events happen need to use poisson model
+************************************************
+results1<-glm(radicalsur_3m~as.character(temperaturecat)+as.character(rainfallcut)+AntigunMov+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop+newid
+ ,family="poisson",data = fulldata)
+
+fulldata$temperatureIV<- results1$fitted.values
+
+summary(fulldata$temperatureIVmoderatesur)
+
+results2<-glm(moderatesur_3m~as.character(temperaturecat)+as.character(rainfallcut)+AntigunMov+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop+newid
+ ,family="poisson",data = fulldata)
+fulldata$temperatureIVmoderatesur<- results2$fitted.values
+
+results3<-glm(institutionsur_3m~as.character(temperaturecat)+as.character(rainfallcut)+AntigunMov+
+Hobbyist_p1+
+cumupublicadoption+
+cumudenovo+
+Ndealio_p1  +
+
+radicalmili_4m+
+accidents_1m+
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop+newid
+ ,family="poisson",data = fulldata)
+fulldata$temperatureIVinstitutional<- results3$fitted.values
+
+
+
+
+
+**********************************************
+calculate cumulative de novo and de alio firms
+**************************************************
+cumulativefunction<-function(input){
+mm<-matrix(0, nrow=nrow(input), ncol=nrow(input))
+mm<-lower.tri(mm)
+results<-mm%*%input[,46]
+output<-paste(results, collapse=",")
+return(output)
+}
+library(plyr)
+fulldata<-fulldata[order(fulldata$statefips, fulldata$countyfips, fulldata$year, fulldata$month),]
+results<-ddply(fulldata,.(year,month),cumulativefunction)
+fulldata$cumuhobbyists<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+write.dta(fulldata,file="F:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Data_20180621.dta")
+
+
+**********************************************
+calculate cumulative public adoption
+**************************************************
+cumulativefunction<-function(input){
+mm<-matrix(0, nrow=nrow(input), ncol=nrow(input))
+mm<-lower.tri(mm)
+results<-mm%*%input[,9]
+output<-paste(results, collapse=",")
+return(output)
+}
+library(plyr)
+fulldata<-fulldata[order(fulldata$statefips, fulldata$countyfips, fulldata$year, fulldata$month),]
+results<-ddply(fulldata,.(year,month),cumulativefunction)
+fulldata$cumupublicadoption<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+write.dta(fulldata,file="F:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Data_20180621.dta")
+
+
+
+
+*******************************************
+last period de novo and de alio and pub adoption
+*******************************************
+fulldata<-fulldata[order(fulldata$statefips, fulldata$countyfips, fulldata$year, fulldata$month),]
+
+lagoneperiod<-function(input){
+mm<-c(0,input[,7])
+mm<-mm[1:nrow(input)]
+mm<-paste(mm,collapse=",")
+return(mm)
+}
+library(plyr)
+results<-ddply(fulldata,.(statefips, countyfips), lagoneperiod)
+fulldata$Ndealio_p1<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+lagoneperiod<-function(input){
+mm<-c(0,input[,9])
+mm<-mm[1:nrow(input)]
+mm<-paste(mm,collapse=",")
+return(mm)
+}
+library(plyr)
+results<-ddply(fulldata,.(statefips, countyfips), lagoneperiod)
+fulldata$Pubadoption_p1<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+
+lagoneperiod<-function(input){
+mm<-c(0,input[,10])
+mm<-mm[1:nrow(input)]
+mm<-paste(mm,collapse=",")
+return(mm)
+}
+library(plyr)
+results<-ddply(fulldata,.(statefips, countyfips), lagoneperiod)
+fulldata$DeNOVO_p1<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+
+
+
+lagoneperiod<-function(input){
+mm<-c(0,input[,46])
+mm<-mm[1:nrow(input)]
+mm<-paste(mm,collapse=",")
+return(mm)
+}
+library(plyr)
+results<-ddply(fulldata,.(statefips, countyfips), lagoneperiod)
+fulldata$Hobbyist_p1<-as.numeric(as.matrix(unlist(strsplit(results[,3],","))))
+
+
+*******************************************************
+Summary Statistics
+
+******************************************************
+sum NDealio Ndenovo moderatesur_3m radicalsur_3m institutionsur_3m allradical_4m Hobbyist_p1 cumupublicadoption cumudenovo Ndealio_p1   radicalmili_4m accidents_1m dronemanufacture NUniveristy logpilots security privacy california gdppercap Totalpop
+
+
+cor NDealio Ndenovo   moderatesur_3m radicalsur_3m institutionsur_3m allradical_4m Hobbyist_p1 cumupublicadoption cumudenovo Ndealio_p1   radicalmili_4m accidents_1m dronemanufacture NUniveristy logpilots security privacy california gdppercap Totalpop
+
+
+
+******************************************************
+Read the data and conduct simple analyses
+
+******************************************************
+
+library(foreign)
+fulldata<-read.dta("Newdata20180621.dta")
+
+attachhead<-fulldata[,1:4]
+
+stationrainfall<-read.table("countiesstationwithdata.csv",
+sep=",",header=TRUE)
+
+
+
+library(moments)
+
+# add temperature instrumental variable
+rainfall<-read.table("Rainfall2014_2016.csv",sep=",",header=TRUE)
+temperaturemax<-read.table("Temperaturemax2014_2016.csv",sep=",",header=TRUE)
+temperaturemin<-read.table("Temperaturemin2014_2016.csv",sep=",",header=TRUE)
+
+
+
+calmonthlymoments<-function(input, compare,stationrainfall){
+
+station<-stationrainfall[which(
+stationrainfall$statefips==as.numeric(as.matrix(input[3]))& 
+stationrainfall$countyfips==as.numeric(as.matrix(input[4]))),]$station
+
+compareamount<-which(as.character(as.matrix(compare[,4]))
+%in%as.character(as.matrix(station)) & 
+as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))&
+as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[2])))
+if(length(compareamount)!=0){
+tempfirstmoment<-moment(compare[compareamount,5],order=1,absolute=TRUE)
+tempsecondmoment<-moment(compare[compareamount,5],order=2,absolute=TRUE)
+tempthirdmoment<-moment(compare[compareamount,5],order=3,absolute=TRUE)
+}else{
+tempfirstmoment<-0
+tempsecondmoment<-0
+tempthirdmoment<-0
+}
+
+output<-data.frame(tempfirstmoment)
+output<-cbind(output,tempsecondmoment, tempthirdmoment)
+return(output)
+}
+library(plyr)
+
+
+rainfallmoment<-apply(attachhead,1,calmonthlymoments,rainfall,stationrainfall)
+rainfallmoment<-do.call(rbind,rainfallmoment)
+output<-cbind(attachhead,rainfallmoment)
+write.table(output,file="Rainfallmoment.csv",sep=",",row.names=FALSE)
+
+temperaturemaxmoment<-apply(attachhead,1,calmonthlymoments,temperaturemax,stationrainfall)
+temperaturemaxmoment<-do.call(rbind,temperaturemaxmoment)
+output<-cbind(attachhead,temperaturemaxmoment)
+write.table(output,file="Temperaturemaxmoment.csv",sep=",",row.names=FALSE)
+
+
+temperatureminmoment<-apply(attachhead,1,calmonthlymoments,temperaturemin,stationrainfall)
+temperatureminmoment<-do.call(rbind,temperatureminmoment)
+output<-cbind(attachhead,temperatureminmoment)
+write.table(output,file="Temperatureminmoment.csv",sep=",",row.names=FALSE)
+
+*****************************************************************
+attach new IV to original data
+*****************************************************************
+
+library(foreign)
+fulldata<-read.dta("Newdata20180621.dta")
+rainfall<-read.table("Rainfallmoment.csv",sep=",",header=TRUE)
+temperaturemax<- read.table("Temperaturemaxmoment.csv",sep=",",header=TRUE)
+temperaturemin<- read.table("Temperatureminmoment.csv",sep=",",header=TRUE)
+colnames(temperaturemin)<-c("year", "month", "statefips", "countyfips",
+"tempfirstmin","tempsecondmin","tempthirdmin")
+
+fulldata<-merge(fulldata,temperaturemax,
+by.x=c("year","month","statefips","countyfips"),
+by.y=c("year","month","statefips","countyfips"),all.x=TRUE)
+
+fulldata<-merge(fulldata,temperaturemin,
+by.x=c("year","month","statefips","countyfips"),
+by.y=c("year","month","statefips","countyfips"),all.x=TRUE)
+
+
+
+
+
+
+*************************************************
+Instrumental Variable
+************************************************
+results1<-glm(radicalsur_3m~
+tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin 
+ ,family="poisson",data = fulldata)
+
+fulldata$temperatureIV<- results1$fitted.values
+
+
+results2<-glm(moderatesur_3m~tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin ,family="poisson",data = fulldata)
+fulldata$temperatureIVmoderatesur<- results2$fitted.values
+
+results3<-glm(institutionsur_3m~tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin ,family="poisson",data = fulldata)
+fulldata$temperatureIVinstitutional<- results3$fitted.values
+
+fulldata$antisurveillance_3m<-fulldata$radicalsur_3m+
+fulldata$moderatesur_3m+fulldata$institutionsur_3m
+
+results4<-glm(radicalmili_3m ~tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin ,family="poisson",data = fulldata)
+
+fulldata$militaryIV<- results4$fitted.values
+
+results5<-glm(antisurveillance_3m~tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin ,family="poisson",data = fulldata) 
+
+fulldata$antisurveillanceIV<- results5$fitted.values
+
+
+
+
+
+
+fulldata$testdiversity <-1- fulldata$diversity_3m
+fulldata[which(fulldata$testdiversity==1), ]$testdiversity<-0
+fulldata[which(is.na(fulldata$testdiversity)), ]$testdiversity<-0
+
+
+results6<-lm(testdiversity~ 
+radicalmili_3m+
+radicalsur_3m+
+moderatesur_3m+
+institutionsur_3m ,data = fulldata) 
+
+fulldata$testdiversityIV<- results6$fitted.values
+
+results7<-glm(allradical_3m~tempfirstmoment+ tempsecondmoment+ 
+tempfirstmin+ tempsecondmin ,family="poisson",data = fulldata) 
+fulldata$surveillancespillIV<- results7$fitted.values
+
+
+write.dta(fulldata,"D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata_20180708.dta")
+
+
+********************************************************
+Main Zero Inflated Model
+
+********************************************************
+library(foreign)
+fulldata<-read.dta("E:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata_20180708.dta")
+
+library(pscl)
+
+militaryIV+
+antisurveillanceIV+
+temperatureIV  +
+temperatureIVmoderatesur+
+temperatureIVinstitutional+
+testdiversityIV+
+surveillancespillIV+
+surveillancespillIV*temperatureIVmoderatesur+
+
+radicalmili_3m+
+antisurveillance_3m+
+radicalsur_3m+
+moderatesur_3m+
+institutionsur_3m+
+testdiversity+
+
+allradical_4m+
+allradical_4m*moderatesur_3m+
+
+
+DeNOVO_p1+
+Ndealio_p1  +
+
+results1<-zeroinfl(Ndenovo~
+
+militaryIV+
+temperatureIV  +
+temperatureIVmoderatesur+
+temperatureIVinstitutional+
+
+surveillancespillIV+
+surveillancespillIV*temperatureIVmoderatesur+
+
+Hobbyist_p1+
+cumupublicadoption+
+
+DeNOVO_p1+
+Ndealio_p1  +
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+at.level(trait,1):militaryIV+
+at.level(trait,1):temperatureIV  +
+at.level(trait,1):temperatureIVmoderatesur+
+at.level(trait,1):temperatureIVinstitutional+
+at.level(trait,1):testdiversityIV+
+at.level(trait,1):surveillancespillIV+
+at.level(trait,1):surveillancespillIV*at.level(trait,1):temperatureIVmoderatesur+
+
+at.level(trait,3):militaryIV+
+at.level(trait,3):temperatureIV  +
+at.level(trait,3):temperatureIVmoderatesur+
+at.level(trait,3):temperatureIVinstitutional+
+at.level(trait,3):testdiversityIV+
+at.level(trait,3):surveillancespillIV+
+at.level(trait,3):surveillancespillIV*at.level(trait,3):temperatureIVmoderatesur+
+
+
+
+
+library(MCMCglmm)
+results<-MCMCglmm(cbind(NDealio,Ndenovo)~
+
+at.level(trait,1):temperatureIVmoderatesur+
+at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):cumupublicadoption+
+at.level(trait,1):DeNOVO_p1+
+at.level(trait,1):Ndealio_p1  +
+
+at.level(trait,1):accidents_1m+
+at.level(trait,1):dronemanufacture+
+at.level(trait,1):NUniveristy+
+at.level(trait,1):logpilots+
+at.level(trait,1):security+
+at.level(trait,1):privacy + 
+at.level(trait,1):california+  
+at.level(trait,1):gdppercap  +
+at.level(trait,1):Totalpop+
+
+at.level(trait,2):dronemanufacture+
+at.level(trait,2):NUniveristy+
+at.level(trait,2):logpilots+
+at.level(trait,2):security+
+at.level(trait,2):privacy + 
+at.level(trait,2):california+  
+at.level(trait,2):gdppercap  +
+at.level(trait,2):Totalpop+
+
+
+at.level(trait,3):temperatureIVmoderatesur+
+
+
+at.level(trait,3):testdiversityIV+
+at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):cumupublicadoption+
+at.level(trait,3):DeNOVO_p1+
+at.level(trait,3):Ndealio_p1  +
+
+at.level(trait,3):accidents_1m+
+at.level(trait,3):dronemanufacture+
+at.level(trait,3):NUniveristy+
+at.level(trait,3):logpilots+
+at.level(trait,3):security+
+at.level(trait,3):privacy + 
+at.level(trait,3):california+  
+at.level(trait,3):gdppercap  +
+at.level(trait,3):Totalpop+
+
+
+at.level(trait,4):dronemanufacture+
+at.level(trait,4):NUniveristy+
+at.level(trait,4):logpilots+
+at.level(trait,4):security+
+at.level(trait,4):privacy + 
+at.level(trait,4):california+  
+at.level(trait,4):gdppercap+
+at.level(trait,4):Totalpop,random =~us(trait):statecountycluster,rcov= ~us(trait):units, family =rep("zipoisson",2),
+nitt=5000,burnin=3000,thin=25,data=fulldata)
+summary(results)
+
+
+
+
+
+*********************************************
+Test whether de alio firms are similar or different from de novo firms
+b[1]-b[2]>0 
+************************************************
+
+library(nlWaldTest)
+library(matrixStats)
+covariancematrix<- colSds(results1$Sol)^2
+mean<- colSums(results1$Sol)/80
+mm<-matrix(0,nrow=length(mean),ncol=length(mean))
+diag(mm)<-covariancematrix
+nlWaldtest(texts="b[2]-b[24]=0.1", coeff=mean, Vcov=mm)
+
+
+
+*********************************************
+Test the inequality impact of three types of protests
+************************************************
+library(foreign)
+fulldata<-read.dta("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata_20180704.dta")
+library(pscl)
+
+
+
+library(nlWaldTest)
+library(matrixStats)
+mm<- results1$vcov[1:length(results1$coefficients$count),1:length(results1$coefficients$count)]
+
+
+nlWaldtest(texts="b[3]-b[4]=0.1", coeff=results1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[4]-b[5]=0.1", coeff=results1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[3]-b[5]=0.1", coeff=results1$coefficients$count, Vcov=mm)
+
+
+*******************************************
+Diversity of protests with prediction of diversity
+*******************************************
+gen  antisurveillance_3m=radicalsur_3m+ moderatesur_3m +institutionsur_3m 
+
+sum NDealio Ndenovo radicalmili_3m antisurveillance_3m radicalsur_3m moderatesur_3m institutionsur_3m testdiversity  allradical_4m tempfirstmoment tempsecondmoment tempfirstmin tempsecondmin Hobbyist_p1 cumupublicadoption  DeNOVO_p1 Ndealio_p1 accidents_1m dronemanufacture NUniveristy logpilots security privacy  california gdppercap Totalpop
+
+cor NDealio Ndenovo radicalmili_3m antisurveillance_3m radicalsur_3m moderatesur_3m institutionsur_3m testdiversity  allradical_4m tempfirstmoment tempsecondmoment tempfirstmin tempsecondmin Hobbyist_p1 cumupublicadoption  DeNOVO_p1 Ndealio_p1 accidents_1m dronemanufacture NUniveristy logpilots security privacy  california gdppercap Totalpop
+
+#####################################################################
+***********************************************************
+New Analyses 20180712
+************************************************************
+########################################################################
+
+library(foreign)
+fulldata<-read.dta("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata_20180704.dta")
+library(pscl)
+
+radicalmili_3m+
+antisurveillance_3m+
+radicalsur_3m+
+moderatesur_3m+
+institutionsur_3m+
+testdiversity+
+
+allradical_4m+
+allradical_4m*moderatesur_3m+
+moderatesur_3m+
+instest_3m+
+
+moderatecounty_3m+
+
+stateradical_3m.y+
+stateradical_3m.y*moderatecounty_4m+
+
+fulldata$combinemoderateinstitutional<-fulldata$moderatecounty_3m+
+fulldata$instest_3m
+
+results<-lm()
+
+radicalcounty_4m
+moderatecounty_4m
+stateradical_4m.y 
+radicalcounty_3m  
+
+
+moderatecounty_3m+
+statemoderate_3m*radicalcounty_3m+
+
+
+results1<-zeroinfl(totalApplication ~
+radicalcounty_3m +
+moderatecounty_3m+
+
+instest_4m+
+Hobbyist_p1+
+cumupublicadoption+
+accident_1m+
+cumuapply+
+dronemanufacture+
+NUniveristy+
+logpilots+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+ 
+fulldata$test1<-fulldata$test*fulldata$radicalsur_4m
+summary(fulldata$test1)
+cor(fulldata$test, fulldata$institutionsur_3m) 
+
+#merge with new antiwar protests
+library(foreign)
+antiwarprotests<-read.dta("antiwartimelag.dta")
+fulldata<-merge(fulldata,antiwarprotests,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+
+
+institutionalrevise<-read.dta("institutionalantisurv.dta")
+colnames(institutionalrevise)<-c("instest_1m","instest_2m","instest_3m","instest_4m","statefips", "year", "month", "countyfips")
+fulldata<-merge(fulldata,institutionalrevise,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+
+
+
+
+
+
+radicalcounty<-read.dta("radicalcounty.dta")
+
+fulldata<-merge(fulldata,radicalcounty,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+moderatecounty<-read.dta("moderatecounty.dta")
+
+fulldata<-merge(fulldata,moderatecounty,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+stateradical
+
+
+stateradical<-read.dta("stateradical.dta")
+
+fulldata<-merge(fulldata,stateradical,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+
+statemoderate<-read.dta("statemoderate.dta")
+
+fulldata<-merge(fulldata,statemoderate,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+************************************
+Weighted radical protests
+***************************************
+radicalcounty_3m +
+moderatecounty_3m+
+instest_3m+
+stateradical_4m.y+
+allradical_4m+
+
+radicalmili_3m+
+antisurveillance_3m+
+radicalsur_3m+
+moderatesur_3m+
+institutionsur_3m+
+testdiversity+
+
+fulldata$combine<-fulldata$moderatecounty_3m+fulldata$instest_3m
+
+
+results1<-zeroinfl(totalApplication ~
+radicalcounty_4m +
+combine+
+stateradical_4m.y+
+stateradical_4m.y*combine+
+Hobbyist_p1+
+cumupublicadoption+
+
+accidents_1m+
+
+dronemanufacture+
+NUniveristy+
+logpilots+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE)
+
+
+ 
+
+
+************************************
+Three different table
+***************************************
+
+fulldata<-read.table("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata20180716.csv",sep=",",header=TRUE)
+
+radicalcounty_4m+
+moderatecounty_4m+
+instest_4m+
+
+NDealio Ndenovo   moderatesur_3m radicalsur_3m institutionsur_3m
+ allradical_4m Hobbyist_p1 cumupublicadoption cumudenovo Ndealio_p1  
+ radicalmili_4m accidents_1m dronemanufacture NUniveristy logpilots 
+ security privacy california gdppercap Totalpop
+
+
+
+stateradical_2m.x 
+statemoderate_2m (within one year)
+institutionalstate_2m
+
+stateradical_4m.x 
+statemoderate_4m 
+institutionalstate_4m
+stateradicalshift (radical protests shift)
+statemoderate_2m.x+
+
+
+ fulldata$radicalshiftdummy<-0
+ 
+fulldata[which(fulldata$stateradicalshift!=0),]$radicalshiftdummy<-1
+
+institutionalstate<-read.dta("institutionalstate.dta")
+
+fulldata<-merge(fulldata,institutionalstate,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+
+write.table(fulldata, file="D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata20180716.csv",
+sep=",",row.names=FALSE)
+
+
+stateradicalshift<-read.dta("stateradicalshift.dta")
+
+fulldata<-merge(fulldata,stateradicalshift,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month", "countyfips"),all.x=TRUE)
+
+
+
+
+
+
+library(pscl)
+
+results1<-zeroinfl(totalApplication ~
+antisurveillance+
+Hobbyist_p1+
+cumupublicadoption+
+accidents_4m+
+cumuapply+
+dronemanufacture+
+NUniveristy+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+***********************************
+Finalize results 20180718
+***************************************
+fulldata<-read.table("D:\\All_Projects\\Project_Lori_SocialMovementImpact\\3_FinalDataset\\Fulldata20180716.csv",sep=",",header=TRUE)
+
+fulldata$combine<-fulldata$moderatecounty_4m+fulldata$instest_4m
+fulldata$antisurveillance<-fulldata$radicalcounty_4m+fulldata$moderatecounty_4m+fulldata$instest_4m
+fulldata$cumuapplication_p1<-fulldata$DeNOVO_p1+fulldata$Ndealio_p1
+
+
+library(pscl)
+NDealio,Ndenovo
+
+
+results1<-zeroinfl(totalApplication~
+ radicalmili_4m+
+Hobbyist_p1+
+cumupublicadoption+
+accidents_4m+
+cumuapply+
+dronemanufacture+
+NUniveristy+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap  +
+Totalpop|
+dronemanufacture+
+NUniveristy+
+logpilots+
+
+security+
+privacy + 
+california+  
+gdppercap  +
+Totalpop
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+ 
+
+ totalApplication
+ antiwar_4m
+ radicalmili_4m+
+ antisurveillance+
+ radicalcounty_4m+
+moderatecounty_4m+
+instest_4m+
+combine+
+combine* radicalcounty_4m+
+ 
+ 
+ 
+
+
+library(MCMCglmm)
+results<-MCMCglmm(cbind(NDealio,Ndenovo)~
+at.level(trait,1): antiwar_4m+
+at.level(trait,1):combine+
+at.level(trait,1): radicalcounty_4m+
+
+at.level(trait,1):combine*at.level(trait,1): radicalcounty_4m+
+
+at.level(trait,1):Hobbyist_p1+
+at.level(trait,1):cumupublicadoption+
+at.level(trait,1):cumuapply+
+at.level(trait,1):accidents_4m+
+at.level(trait,1):dronemanufacture+
+at.level(trait,1):NUniveristy+
+at.level(trait,1):logpilots+
+at.level(trait,1):statesecurity+
+at.level(trait,1):stateprivacy + 
+at.level(trait,1):california+  
+at.level(trait,1):gdppercap  +
+at.level(trait,1):Totalpop+
+
+at.level(trait,2):dronemanufacture+
+at.level(trait,2):NUniveristy+
+at.level(trait,2):logpilots+
+at.level(trait,2):security+
+at.level(trait,2):privacy + 
+at.level(trait,2):california+  
+at.level(trait,2):gdppercap  +
+at.level(trait,2):Totalpop+
+
+at.level(trait,3): antiwar_4m+
+at.level(trait,3):combine+
+at.level(trait,3): radicalcounty_4m+
+at.level(trait,3):combine*at.level(trait,3): radicalcounty_4m+
+
+
+at.level(trait,3):Hobbyist_p1+
+at.level(trait,3):cumupublicadoption+
+at.level(trait,3):cumuapply+
+at.level(trait,3):accidents_4m+
+at.level(trait,3):dronemanufacture+
+at.level(trait,3):NUniveristy+
+at.level(trait,3):logpilots+
+at.level(trait,3):statesecurity+
+at.level(trait,3):stateprivacy + 
+at.level(trait,3):california+  
+at.level(trait,3):gdppercap  +
+at.level(trait,3):Totalpop+
+
+
+at.level(trait,4):dronemanufacture+
+at.level(trait,4):NUniveristy+
+at.level(trait,4):logpilots+
+at.level(trait,4):security+
+at.level(trait,4):privacy + 
+at.level(trait,4):california+  
+at.level(trait,4):gdppercap+
+at.level(trait,4):Totalpop,random =~us(trait):statecountycluster,rcov= ~us(trait):units, family =rep("zipoisson",2),
+nitt=5000,burnin=3000,thin=25,data=fulldata)
+summary(results)
+
+
+****************************************
+Data Recover
+******************************************
+fulldata<-read.dta("Fulldata_20180717.dta")
+
+radicalmili_4m+
+controlmilitary+
+library(pscl)
+
+results1<-zeroinfl(napplication~
+radicalmili_4m+
+controlmilitary+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +as.character(newid) 
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap  
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+#add control function
+results2<-lm(radicalmili_4m~ rainfall+tempfirstmin+
+ tempsecondmin+
+ as.character(statefips)+
+ as.character(newid),data=fulldata)
+ 
+ fulldata$controlmilitary<-results2$residual
+
+radicalmili_4m
+radicalcounty_4m
+moderatecounty_4m
+summary(results1)
+
+
+
+
+
