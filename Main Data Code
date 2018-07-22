@@ -1828,15 +1828,46 @@ summary(results)
 ****************************************
 Data Recover
 ******************************************
+library(foreign)
 fulldata<-read.dta("Fulldata_20180717.dta")
 
 radicalmili_4m+
 controlmilitary+
+
+ radicalcounty_4m+
+controlsurveillance+
+
+ moderatecounty_4m+
+controlmoderate+
+
+
+instest_4m+
+controlinstitution+
+
+ radicalcounty_4m+
+ combine+
+controlsurveillance+
+controlmoderate+
+controlinstitution+
+
+fulldata$combine<-fulldata$instest_4m+fulldata$moderatecounty_4m
+
 library(pscl)
 
-results1<-zeroinfl(napplication~
-radicalmili_4m+
-controlmilitary+
+controlsurveillance+
+controlcombine+
+
+
+
+results1<-zeroinfl(totalapplication~
+radicalcounty_4m+
+combine+
+
+controlsurveillance+
+controlcombine+
+
+
+cumuapply+
 cumupublicadoption+
 accidents_4m+
 dronemanufacture+
@@ -1844,16 +1875,22 @@ logpilots+
 statesecurity+
  stateprivacy+ 
 california+  
-gdppercap +as.character(newid) 
+gdppercap+
+newtotalpop
 |
 dronemanufacture+
 logpilots+
 statesecurity+
  stateprivacy+ 
 california+  
-gdppercap  
+gdppercap +
+newtotalpop 
  , data=fulldata, dist = "poisson", EM = TRUE) 
+
  
+ controlsurveillance+
+controlcombine+
+
 #add control function
 results2<-lm(radicalmili_4m~ rainfall+tempfirstmin+
  tempsecondmin+
@@ -1861,13 +1898,52 @@ results2<-lm(radicalmili_4m~ rainfall+tempfirstmin+
  as.character(newid),data=fulldata)
  
  fulldata$controlmilitary<-results2$residual
+ 
+ 
+ results3<-lm( radicalcounty_4m~ rainfall+tempfirstmin+
+ tempsecondmin+
+ as.character(statefips)+
+ as.character(newid),data=fulldata)
+ 
+ fulldata$controlsurveillance<-results3$residual
+ 
+ moderatecounty_4m+
+instest_4m+
+
+  results3<-lm( moderatecounty_4m~ rainfall+tempfirstmin+
+ tempsecondmin+
+ as.character(newid)
+ ,data=fulldata)
+ 
+ fulldata$controlmoderate<-results3$residual
+ 
+ 
+   results3<-lm( instest_4m~ rainfall+tempfirstmin+
+ tempsecondmin+
+ as.character(newid)+
+ as.character(statefips)
+ ,data=fulldata)
+ 
+ fulldata$controlinstitution<-results3$residual
+ 
+  
+   results3<-lm(combine~ rainfall+tempfirstmin+
+ tempsecondmin+
+ as.character(newid)+
+ as.character(statefips)
+ ,data=fulldata)
+ 
+ fulldata$controlcombine<-results3$residual
+ 
+ 
+ 
+fulldata$newtotalpop<-log(as.numeric(as.matrix(fulldata$totalpop)))
 
 radicalmili_4m
 radicalcounty_4m
 moderatecounty_4m
 summary(results1)
 
-
-
-
-
+**************************************
+Draw Interaction Effect
+*********************************************
