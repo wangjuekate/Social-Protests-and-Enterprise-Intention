@@ -1944,6 +1944,36 @@ radicalcounty_4m
 moderatecounty_4m
 summary(results1)
 
+
 **************************************
 Draw Interaction Effect
 *********************************************
+
+coefficients<- results1$coefficients$count
+meanofvariable<-colMeans(results1$x$count)
+
+mm<-matrix(0,nrow=2, ncol=8)
+for(i in 1:2){
+for(j in 1:8){
+meanofvariable[2]<-i-1
+meanofvariable[3]<-j-1
+meanofvariable[length(meanofvariable)]<-(i-1)*(j-1)
+mm[i,j]<-exp(t(coefficients)%*%meanofvariable)
+}}
+
+write.table(mm,file="graph1.csv",sep=",",row.names=FALSE)
+
+zz <- plm(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
+data = Produc, index = c("state","year"))
+
+
+mm<-summary(results4)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("R square", round( 
+as.numeric(as.matrix(mm$r.squared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
