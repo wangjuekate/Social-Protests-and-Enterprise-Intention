@@ -2007,3 +2007,65 @@ esttab model1 model2 model3 model4  using ier.rtf, se sca(ll) star(* 0.05 ** 0.0
 
 
 
+*****************************
+no fixed time effect
+********************************
+library(foreign)
+fulldata<-read.dta("Fulldata_20180717.dta")
+
+radicalmili_4m+
+controlmilitary+
+
+ radicalcounty_4m+
+controlsurveillance+
+
+ moderatecounty_4m+
+controlmoderate+
+
+
+instest_4m+
+controlinstitution+
+
+ radicalcounty_4m+
+ combine+
+controlsurveillance+
+controlmoderate+
+controlinstitution+
+
+fulldata$combine<-fulldata$instest_4m+fulldata$moderatecounty_4m
+
+library(pscl)
+
+controlsurveillance+
+controlcombine+
+
+
+
+results1<-zeroinfl(totalapplication~
+ radicalcounty_4m*combine+
+ combine+as.character(statefips)+
+ as.character(newid)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+
+ 
+ write.table(fulldata, file="Fulldata20180722.csv",
+sep=",",row.names=FALSE)
+
+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap+
+newtotalpop+
