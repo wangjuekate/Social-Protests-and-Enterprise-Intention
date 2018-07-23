@@ -1977,3 +1977,33 @@ as.numeric(as.matrix(mm$r.squared) ),digits=2) ))
 )
 ,type="html",file="numfundingzipsubset1.html")
 
+**************************************
+stata code
+*********************************************
+
+
+
+
+xtset  statecountycluster newid
+
+xtreg  logtotalapplication radicalmili_4m controlmilitary  cumupublicadoption  statesecurity stateprivacy, fe
+
+est sto model1
+
+xtreg   logtotalapplication radicalcounty_4m  controlsurveillance cumuapply accident_4m cumupublicadoption  statesecurity stateprivacy, fe
+
+est sto model2
+
+
+xtreg  logtotalapplication radicalcounty_4m combine  controlsurveillance controlcombine  cumupublicadoption statesecurity stateprivacy, fe
+
+est sto model3
+
+xtreg   logtotalapplication radicalcounty_4m combine  controlsurveillance controlcombine  cumupublicadoption statesecurity stateprivacy c.( radicalcounty_4m)#c.(combine), fe
+
+est sto model4
+
+esttab model1 model2 model3 model4  using ier.rtf, se sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
+
+
+
