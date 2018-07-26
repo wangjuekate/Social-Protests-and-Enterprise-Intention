@@ -1,0 +1,25 @@
+#read the 
+
+massshooting$date<-as.Date(paste(massshooting$year, massshooting$month,"01",sep="-"))
+
+cleanup<-function(input,compare){
+address1<-which(
+ as.Date(compare[,9])< as.Date(as.matrix(input[5]) )&
+ compare[,2]==as.numeric(as.matrix(input[1]))& 
+compare[,3]==as.numeric(as.matrix(input[4])) )
+nmassshootings<-length(address1)
+if(nmassshootings!=0){
+ndeath<-sum(compare[address1,4])
+nvictim<-sum(compare[address1,5])
+}else{
+ndeath<-0
+nvictim<-0
+}
+output<-data.frame(nmassshootings)
+output<-cbind(output,ndeath,nvictim)
+return(output)
+}
+results<-apply(attach,1,cleanup,massshooting)
+results<-do.call(rbind,results)
+attach<-cbind(attach,results)
+write.table(attach,file="AttachtoDataMassshooting.csv",sep=",",row.names=FALSE)
