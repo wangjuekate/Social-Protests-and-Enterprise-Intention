@@ -1,25 +1,49 @@
-#read the 
+*********
+create protests over time
+**********
 
-massshooting$date<-as.Date(paste(massshooting$year, massshooting$month,"01",sep="-"))
+fulldata<-read.table("Fulldata20180722.csv",sep=",",header=TRUE)
+data<-fulldata[,1:4]
+data$date<-as.Date(paste(data$year,data$month,"01",sep="-"))
 
-cleanup<-function(input,compare){
-address1<-which(
- as.Date(compare[,9])< as.Date(as.matrix(input[5]) )&
- compare[,2]==as.numeric(as.matrix(input[1]))& 
-compare[,3]==as.numeric(as.matrix(input[4])) )
-nmassshootings<-length(address1)
-if(nmassshootings!=0){
-ndeath<-sum(compare[address1,4])
-nvictim<-sum(compare[address1,5])
-}else{
-ndeath<-0
-nvictim<-0
-}
-output<-data.frame(nmassshootings)
-output<-cbind(output,ndeath,nvictim)
+countysur<-read.table("countysur.csv",sep=",",header=TRUE)
+countysur$date<-as.Date(paste(countysur$year,countysur$month,"01",sep="-"))
+
+
+
+
+calculatecountyprior<-function(input,compare){
+
+
+address1<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-150 
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address2<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-300
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address3<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-600
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
 return(output)
 }
-results<-apply(attach,1,cleanup,massshooting)
+
+results<-apply(data,1,calculatecountyprior, countysur)
 results<-do.call(rbind,results)
-attach<-cbind(attach,results)
-write.table(attach,file="AttachtoDataMassshooting.csv",sep=",",row.names=FALSE)
+colnames(results)<-c("countysur_150d","countysur_300d","countysur_600d") 
+
+
+calculatestateprior<-function(input,compare){
+
+
+
+
+calculatenationprior<-function(input,compare){
