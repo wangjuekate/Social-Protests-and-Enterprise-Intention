@@ -67,3 +67,161 @@ california+
 gdppercap +
 newtotalpop 
  , data=fulldata, dist = "poisson", EM = TRUE) 
+
+
+
+
+fulldata<-read.table("Fulldata20180726.csv",sep=",",header=TRUE)
+
+
+countymili_600d+
+countymiliresidual+
+
+radicalmili_600d+
+radicalmiliresidual+
+
+antisurveillance+
+antisurveillanceresidual+
+
+radicalcounty_4m+
+radicalsurveilresidual+
+
+
+fulldata$antimilitary<-fulldata$nationalmili_600d+fulldata$countymili_600d
+fulldata$antisurveillance<-fulldata$statesur_600d+fulldata$countysur_600d+fulldata$nationsur_600d
+
+library(pscl)
+
+results1<-zeroinfl(totalapplication~
+antisurveillance+
+
+cumuapply+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+
+gdppercap +
+newtotalpop +
+as.character(newid)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ summary(results1)
+ 
+ 
+ 
+results1<-zeroinfl(totalapplication~
+radicalmili_600d+
+
+cumuapply+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+
+gdppercap +
+newtotalpop +
+as.character(newid)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ summary(results1)
+
+ 
+as.character(statefips)
+#instrumental variable
+library(plm)
+
+results1<-plm(countymili_600d~tempfirstmin +tempsecondmin,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$countymiliresidual<-results1$residuals
+
+
+
+results2<-plm(radicalmili_600d~tempfirstmin +tempsecondmin,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$radicalmiliresidual<-results2$residuals
+
+results3<-plm(antisurveillance~tempfirstmin +tempsecondmin,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$antisurveillanceresidual<-results3$residuals
+
+
+
+results4<-plm(radicalcounty_4m~tempfirstmin +tempsecondmin ,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$radicalsurveilresidual<-results4$residuals
+
+
+# write zero inflation model
+mm<-summary(results4)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("R square", round( 
+as.numeric(as.matrix(mm$r.squared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
+
+ 
+ 
+radicalmili_600d+
+ antimilitary+
+antisurveillance+
+
+
+results1<-zeroinfl(totalapplication~
+radicalcounty_4m+
+
+cumuapply+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+ mm<-summary(results1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("R square", round( 
+as.numeric(as.matrix(mm$r.squared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
