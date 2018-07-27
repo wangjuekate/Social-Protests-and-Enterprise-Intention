@@ -1,0 +1,8 @@
+sum totalapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply cumupublicadoption accidents_4m dronemanufacture logpilots statesecurity  stateprivacy california gdppercap newtotalpop 
+
+cor totalapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply cumupublicadoption accidents_4m dronemanufacture logpilots statesecurity  stateprivacy california gdppercap newtotalpop 
+
+gen antisurveillance= statesur_600d+countysur_600d+nationsur_600d
+
+zinb totalapplication countymili_600d cumuapply cumupublicadoption accidents_4m dronemanufacture logpilots statesecurity  stateprivacy california gdppercap newtotalpop i.newid i.statefips, inflate(dronemanufacture logpilots statesecurity  stateprivacy california gdppercap newtotalpop) vuong zip iter(20)
+
