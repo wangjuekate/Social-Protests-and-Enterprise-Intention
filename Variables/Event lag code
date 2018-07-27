@@ -9,8 +9,8 @@ data$date<-as.Date(paste(data$year,data$month,"01",sep="-"))
 countysur<-read.table("countysur.csv",sep=",",header=TRUE)
 countysur$date<-as.Date(paste(countysur$year,countysur$month,"01",sep="-"))
 
-
-
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
 
 calculatecountyprior<-function(input,compare){
 
@@ -39,11 +39,198 @@ return(output)
 results<-apply(data,1,calculatecountyprior, countysur)
 results<-do.call(rbind,results)
 colnames(results)<-c("countysur_150d","countysur_300d","countysur_600d") 
-
+output<-cbind(data,results)
+write.table(output,file="countysur_attach.csv",sep=",",row.names=FALSE)
+**********************************
+add state sur
+*********************************
+statesur<-read.table("statesur.csv",sep=",",header=TRUE)
+statesur$date<-as.Date(paste(statesur$year,statesur$month,"01",sep="-"))
 
 calculatestateprior<-function(input,compare){
 
+address1<-which(as.Date(compare[,4])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,4])>as.Date(as.matrix(input[5]))-150 
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+)
+ 
+address2<-which(as.Date(compare[,4])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,4])>as.Date(as.matrix(input[5]))-300
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+)
+ 
+address3<-which(as.Date(compare[,4])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,4])>as.Date(as.matrix(input[5]))-600
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+)
 
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
+return(output)
+}
+results<-apply(data,1,calculatestateprior, statesur)
+results<-do.call(rbind,results)
+colnames(results)<-c("statesur_150d","statesur_300d","statesur_600d") 
+output<-cbind(data,results)
+write.table(output,file="statesur_attach.csv",sep=",",row.names=FALSE)
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
 
+*****************************
+add national sur
+***************************
+nationsur<-read.table("nationsur.csv",sep=",",header=TRUE)
+nationsur$date<-as.Date(paste(nationsur$year,nationsur$month,"01",sep="-"))
 
 calculatenationprior<-function(input,compare){
+
+address1<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-150 
+
+)
+ 
+address2<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-300
+
+)
+ 
+address3<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-600
+
+)
+
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
+return(output)
+}
+results<-apply(data,1,calculatenationprior, nationsur)
+results<-do.call(rbind,results)
+colnames(results)<-c("nationsur_150d","nationsur_300d","nationsur_600d") 
+output<-cbind(data,results)
+write.table(output,file="nationsur_attach.csv",sep=",",row.names=FALSE)
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
+
+********************
+Add military county
+*********************
+
+
+countymili<-read.table("countymili.csv",sep=",",header=TRUE)
+countymili$date<-as.Date(paste(countymili$year,countymili$month,"01",sep="-"))
+
+
+calculatecountyprior<-function(input,compare){
+
+
+address1<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-150 
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address2<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-300
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address3<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-600
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
+return(output)
+}
+
+results<-apply(data,1,calculatecountyprior, countymili)
+results<-do.call(rbind,results)
+colnames(results)<-c("countymili_150d","countymili_300d","countymili_600d") 
+output<-cbind(data,results)
+write.table(output,file="countymili_attach.csv",sep=",",row.names=FALSE)
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
+
+**********************************
+Add military national
+
+*******************************
+nationalmili<-read.table("nationalmili.csv",sep=",",header=TRUE)
+nationalmili$date<-as.Date(paste(nationalmili$year,nationalmili$month,"01",sep="-"))
+
+calculatenationprior<-function(input,compare){
+
+address1<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-150 
+
+)
+ 
+address2<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-300
+
+)
+ 
+address3<-which(as.Date(compare[,3])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,3])>as.Date(as.matrix(input[5]))-600
+
+)
+
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
+return(output)
+}
+results<-apply(data,1,calculatenationprior, nationalmili)
+results<-do.call(rbind,results)
+colnames(results)<-c("nationalmili_150d","nationalmili_300d","nationalmili_600d") 
+output<-cbind(data,results)
+write.table(output,file="nationalmili_attach.csv",sep=",",row.names=FALSE)
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
+
+************************************
+Add radical military
+************************************
+
+
+radicalmili<-read.table("radicalmili.csv",sep=",",header=TRUE)
+radicalmili$date<-as.Date(paste(radicalmili$year,radicalmili$month,"01",sep="-"))
+
+calculatecountyprior<-function(input,compare){
+
+
+address1<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-150 
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address2<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-300
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+ 
+address3<-which(as.Date(compare[,5])<as.Date(as.matrix(input[5])) &
+as.Date(compare[,5])>as.Date(as.matrix(input[5]))-600
+& as.numeric(as.matrix(compare[,1]))==as.numeric(as.matrix(input[1]))
+ & as.numeric(as.matrix(compare[,2]))==as.numeric(as.matrix(input[4])))
+
+address1<-length(address1)
+output<-data.frame(address1)
+output<-cbind(output,length(address2),length(address3))
+return(output)
+}
+
+results<-apply(data,1,calculatecountyprior, radicalmili)
+results<-do.call(rbind,results)
+colnames(results)<-c("radicalmili_150d","radicalmili_300d","radicalmili_600d") 
+output<-cbind(data,results)
+write.table(output,file="radicalmili_attach.csv",sep=",",row.names=FALSE)
+fulldata<-cbind(fulldata,results)
+write.table(fulldata,file="Fulldata20180726.csv",sep=",",row.names=FALSE)
+
+************************
+
+************************
