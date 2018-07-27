@@ -1,14 +1,53 @@
 
+fulldata<-read.table("Fulldata20180726.csv",sep=",",header=TRUE)
+radicalmili_600d
+radicalcounty_4m+
+
+countymili_600d*radicalcounty_4m+
+
 fulldata$antimilitary<-fulldata$nationalmili_600d+fulldata$countymili_600d
 fulldata$antisurveillance<-fulldata$statesur_600d+fulldata$countysur_600d+fulldata$nationsur_600d
 
 library(pscl)
 
 results1<-zeroinfl(totalapplication~
-radicalmili_600d+
-radicalcounty_4m+
-antimilitary+
 antisurveillance+
+cumuapply+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+
+gdppercap +
+newtotalpop +
+as.character(newid)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ summary(results1)
+ 
+ 
+ 
+
+
+ 
+ 
+radicalmili_600d+
+ antimilitary+
+antisurveillance+
+
+
+results1<-zeroinfl(totalapplication~
+radicalcounty_4m+
+
 cumuapply+
 cumupublicadoption+
 accidents_4m+
@@ -28,8 +67,3 @@ california+
 gdppercap +
 newtotalpop 
  , data=fulldata, dist = "poisson", EM = TRUE) 
- 
- summary(results1)
-
-
-
