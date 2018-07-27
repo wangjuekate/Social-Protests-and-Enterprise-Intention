@@ -1,0 +1,35 @@
+
+fulldata$antimilitary<-fulldata$nationalmili_600d+fulldata$countymili_600d
+fulldata$antisurveillance<-fulldata$statesur_600d+fulldata$countysur_600d+fulldata$nationsur_600d
+
+library(pscl)
+
+results1<-zeroinfl(totalapplication~
+radicalmili_600d+
+radicalcounty_4m+
+antimilitary+
+antisurveillance+
+cumuapply+
+cumupublicadoption+
+accidents_4m+
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ summary(results1)
+
+
+
