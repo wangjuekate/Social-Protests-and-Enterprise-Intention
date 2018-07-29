@@ -2288,5 +2288,211 @@ as.numeric(as.matrix(mm$loglik) ),digits=2) ))
 ,type="html",file="numfundingzipsubset1.html")
 
  
+****************************************
+Edit 2080728 finalize the results
+*************************************
+library(foreign)
+fulldata<-read.dta("Fulldata20180728.dta")
+ editeddata<-read.table("D:\\Protest Project\\Fulldata20180716.csv",sep=",",header=TRUE)
+data<-editeddata[,1:4]
+data$Hobbyist_p1<-editeddata$Hobbyist_p1
+data$NUniveristy<-editeddata$NUniveristy
+data$Totalpop<-editeddata$Totalpop
+data$Ndealio_p1<-editeddata$Ndealio_p1
+data$Pubadoption_p1<-editeddata$Pubadoption_p1
+data$DeNOVO_p1<-editeddata$DeNOVO_p1
+data$Hobbyist_p1<-editeddata$Hobbyist_p1
+ data$NDealio <-editeddata$NDealio 
+data$NUniveristy <-editeddata$NUniveristy 
+data$publicadoption <-editeddata$publicadoption 
+data$Ndenovo<-editeddata$Ndenovo
+
+ fulldata<-merge(fulldata,data,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+ fulldata$totalapplication<-fulldata$NDealio +fulldata$Ndenovo
+ #variable selection
+summary(fulldata$countysur_600d*fulldata$radicalmili_600d)
+summary(fulldata$countysur_600d*fulldata$countymili_600d)
+summary(fulldata$countysur_600d*fulldata$radicalcounty_4m)
+ cor(fulldata$Pubadoption_p1,fulldata$countysur_600d)
+ write.table(fulldata,file="Fulldata20180728.csv",sep=",",row.names=FALSE)
+ 
+ 
+ fulldata<-read.table("Fulldata20180728.csv",sep=",",header=TRUE)
+checkfile<-read.table("Fulldata20180727.csv",sep=",",header=TRUE)
+checkfile1<-checkfile[,1:4]
+checkfile1$checkapply<-checkfile$totalapplication
+
+checkfile1$cumupublicadoption<-checkfile$cumupublicadoption
+
+fulldata<-merge(fulldata,checkfile1,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+
+
+ fulldata$antisurveillance<-fulldata$statesur_600d+fulldata$countysur_600d
+ 
+ 
+fulldata$testapplication<-fulldata$napplication-fulldata$publicadoption-fulldata$NUniveristy
+
+fulldata[which(fulldata$testapplication<0),]$testapplication<-0
+
+
+add<-checkfile[,1:4]
+add$newtotalpop<-checkfile$newtotalpop
+fulldata<-merge(fulldata,add,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+
+ write.table(fulldata,file="Fulldata20180729.csv",sep=",",row.names=FALSE)
+ 
+ fulldata<-read.table("Fulldata20180729.csv",sep=",",header=TRUE)
+ 
+ **************
+ variables
+ ***********
+gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+california+ 
+as.character(newid)
+
+
+ 
+ countymili_600d+
+countymiliresidual+
+
+radicalmili_600d+
+radicalmiliresidual+
+
+antisurveillance+
+antisurveillanceresidual+
+
+radicalcounty_4m+
+radicalsurveilresidual+
+
+
+countysur_600d
+
+ #Test the fitness of models
+
+
+
+library(pscl)
+m1<-zeroinfl(testapplication~
+countymiliIV+
+gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+california+  
+as.character(newid)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
+
+
+m1<-zeroinfl(testapplication~
+   countymili_600d+
+   countymiliresidual+
+   gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(statefips)+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
+ 
+ 
+m2<-glm(testapplication~
+ countymili_600d+
+countymiliresidual+
+gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+california+  
+as.character(newid),family="poisson",data=fulldata)
+
+
+ vuong(m1, m2, digits = getOption("digits"))
+
+ Sys.getenv("R_LIBS_USER")
+[1] "C:\\Users\\wang547\\Documents/R/win-library/3.4"
+
+
+install.packages("MASS")
+install.packages("lattice")
+install.packages("msme")
+library(msme)
+library(MASS)
+library(lattice)
+P__disp(m2)
+  
+library(pscl)
+
+
+
+
+
+library(plm)
+results1<-plm(countymili_600d~tempfirstmin +tempsecondmin,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$countymiliIV<-fulldata$countymili_600d- results1$residuals
+ 
+ 
+
+
+ # write zero inflation model
+mm<-summary(m1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients$count)),
+data.frame(cleardata(mm$coefficients$zero)),
+data.frame(cbind("Obs.",sum( mm$n))),
+data.frame(cbind("log lik.", round( 
+as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
  
  
