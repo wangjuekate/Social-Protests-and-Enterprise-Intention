@@ -2496,3 +2496,430 @@ as.numeric(as.matrix(mm$loglik) ),digits=2) ))
 ,type="html",file="numfundingzipsubset1.html")
  
  
+****************************************
+Edit 2080728 finalize the results
+*************************************
+library(foreign)
+fulldata<-read.dta("Fulldata20180728.dta")
+ editeddata<-read.table("D:\\Protest Project\\Fulldata20180716.csv",sep=",",header=TRUE)
+data<-editeddata[,1:4]
+data$Hobbyist_p1<-editeddata$Hobbyist_p1
+data$NUniveristy<-editeddata$NUniveristy
+data$Totalpop<-editeddata$Totalpop
+data$Ndealio_p1<-editeddata$Ndealio_p1
+data$Pubadoption_p1<-editeddata$Pubadoption_p1
+data$DeNOVO_p1<-editeddata$DeNOVO_p1
+data$Hobbyist_p1<-editeddata$Hobbyist_p1
+ data$NDealio <-editeddata$NDealio 
+data$NUniveristy <-editeddata$NUniveristy 
+data$publicadoption <-editeddata$publicadoption 
+data$Ndenovo<-editeddata$Ndenovo
+
+ fulldata<-merge(fulldata,data,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+ fulldata$totalapplication<-fulldata$NDealio +fulldata$Ndenovo
+ #variable selection
+summary(fulldata$countysur_600d*fulldata$radicalmili_600d)
+summary(fulldata$countysur_600d*fulldata$countymili_600d)
+summary(fulldata$countysur_600d*fulldata$radicalcounty_4m)
+ cor(fulldata$Pubadoption_p1,fulldata$countysur_600d)
+ write.table(fulldata,file="Fulldata20180728.csv",sep=",",row.names=FALSE)
+ 
+ 
+ fulldata<-read.table("Fulldata20180728.csv",sep=",",header=TRUE)
+checkfile<-read.table("Fulldata20180727.csv",sep=",",header=TRUE)
+checkfile1<-checkfile[,1:4]
+checkfile1$checkapply<-checkfile$totalapplication
+
+checkfile1$cumupublicadoption<-checkfile$cumupublicadoption
+
+fulldata<-merge(fulldata,checkfile1,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+
+
+ fulldata$antisurveillance<-fulldata$statesur_600d+fulldata$countysur_600d
+ 
+ 
+fulldata$testapplication<-fulldata$napplication-fulldata$publicadoption-fulldata$NUniveristy
+
+fulldata[which(fulldata$testapplication<0),]$testapplication<-0
+
+
+add<-checkfile[,1:4]
+add$newtotalpop<-checkfile$newtotalpop
+fulldata<-merge(fulldata,add,by.x=c("statefips","year","month","countyfips"),
+by.y=c("statefips","year","month","countyfips"),all.x=TRUE)
+
+
+ write.table(fulldata,file="Fulldata20180729.csv",sep=",",row.names=FALSE)
+ 
+ fulldata<-read.table("Fulldata20180729.csv",sep=",",header=TRUE)
+ 
+ **************
+ variables
+ ***********
+gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+california+ 
+as.character(newid)
+
+
+ 
+ countymili_600d+
+countymiliresidual+
+
+radicalmili_600d+
+radicalmiliresidual+
+
+antisurveillance+
+antisurveillanceresidual+
+
+radicalcounty_4m+
+radicalsurveilresidual+
+
+
+countysur_600d
+
+ #Test the fitness of models
+
+cor(fulldata$countymili_600d,fulldata$antisurveillance)
+
+library(pscl)
+
+
+m1<-zeroinfl(testapplication~
+ countymili_600d*radicalcounty_4m+
+countymiliresidual+
+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
+ 
+ 
+m2<-glm(testapplication~
+ countymili_600d+
+countymiliresidual+
+gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+california+  
+as.character(newid),family="poisson",data=fulldata)
+
+
+ vuong(m1, m2, digits = getOption("digits"))
+
+ Sys.getenv("R_LIBS_USER")
+[1] "C:\\Users\\wang547\\Documents/R/win-library/3.4"
+
+
+install.packages("MASS")
+install.packages("lattice")
+install.packages("msme")
+library(msme)
+library(MASS)
+library(lattice)
+P__disp(m2)
+  
+library(pscl)
+
+
+
+
+results1<-lm(countymili_600d~tempfirstmin +tempsecondmin+as.character(statefips) ,data=fulldata)
+
+
+
+
+fulldata$countymiliresidual<-results1$residuals
+
+
+
+
+results2<-lm(radicalmili_600d~tempfirstmin +tempsecondmin+as.character(statefips) ,data=fulldata)
+
+
+fulldata$radicalmiliresidual<-results2$residuals
+
+
+results3<-lm(antisurveillance~tempfirstmin +tempsecondmin+as.character(statefips) ,data=fulldata)
+
+fulldata$antisurveillanceresidual<-results3$residuals
+
+
+
+results4<-lm(radicalcounty_4m~tempfirstmin +tempsecondmin+as.character(statefips) ,data=fulldata)
+
+fulldata$radicalsurveilresidual<-results4$residuals
+
+
+
+*********************************************
+write OLS table
+***********************************************
+mm<-summary(results1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("Adjust R Square", round( 
+as.numeric(as.matrix(mm$adj.r.squared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
+*********************************************
+Test the inequality impact of four types of protests
+************************************************
+
+library(pscl)
+
+
+m1<-zeroinfl(testapplication~
+ countymili_600d+
+radicalmili_600d+
+antisurveillance+
+radicalcounty_4m+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+
+
+library(nlWaldTest)
+library(matrixStats)
+mm<- m1$vcov[1:length(m1$coefficients$count),1:length(m1$coefficients$count)]
+
+
+nlWaldtest(texts="b[2]-b[3]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[2]-b[4]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[2]-b[5]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[3]-b[4]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[3]-b[5]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+nlWaldtest(texts="b[4]-b[5]=0.1", coeff=m1$coefficients$count, Vcov=mm)
+
+
+*********************************************
+Average Treatment Effect
+************************************************
+countymili<-read.table("countymili.csv",sep=",",header=TRUE)
+
+countymili<-read.table("countysur.csv",sep=",",header=TRUE)
+
+
+countymili<-read.table("radicalmili.csv",sep=",",header=TRUE)
+
+
+countymili<-read.table("radicalcountysur.csv",sep=",",header=TRUE)
+
+countymili<-unique(countymili)
+countymili$countymili<-1
+
+fulldata<-fulldata[,1:99]
+fulldata<-merge(fulldata,countymili,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month","countyfips"),all.x=TRUE)
+
+fulldata[which(is.na(fulldata$countymili)),]$countymili<-0
+
+countymili$date<-as.Date(paste(countymili$year,countymili$month,"01",sep="-"))
+fulldata$date<-as.Date(paste(fulldata$year,fulldata$month,"01",sep="-"))
+
+results<-glm(countymili~tempfirstmin+
+tempsecondmin+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply
+,data=fulldata,family = binomial)
+
+fulldata$probabilitymili<-results$fitted.values
+
+mm<-matrix(0,nrow=nrow(countymili),ncol=4)
+
+for(i in 1:nrow(countymili)){
+
+address1<-which(
+as.Date(fulldata[,101])<as.Date(countymili[i,6]) & 
+as.Date(fulldata[,101])>(as.Date(countymili[i,6])-120) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+address2<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])-120) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))!=as.numeric(as.matrix(countymili[i,2])))
+
+
+address3<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]+120) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+address4<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]+120) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))!=as.numeric(as.matrix(countymili[i,2])))
+
+
+
+if(length(address1)!=0 &length(address2)!=0 &length(address3)!=0 &length(address4)!=0  ){
+mm[i,1]<-sum(fulldata[address1,]$testapplication)
+mm[i,2]<-sum(fulldata[address2,]$testapplication%*%fulldata[address2,]$probabilitymili)
+mm[i,3]<-sum(fulldata[address3,]$testapplication)
+
+mm[i,4]<-sum(fulldata[address4,]$testapplication%*%fulldata[address4,]$probabilitymili)
+}
+
+}
+output<-mm[which(mm[,3]<mm[,1]|mm[,3]==mm[,1]),]
+rbind(colMeans(output),colVars(output))
+
+write.table(rbind(colMeans(output),colVars(output)),file="test.csv",sep=",",row.names=FALSE)
+
+
+*********************************************
+Interaction Models
+************************************************
+
+library(pscl)
+antisurveillance*radicalmili_600d+
+antisurveillanceresidual+
+
+
+m1<-zeroinfl(testapplication~
+antisurveillance*radicalcounty_4m+
+antisurveillanceresidual+
+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
+
+*********************************************
+Diversity prediction
+************************************************
+install.packages("sampleSelection")
+library(sampleSelection)
+
+fulldata$diversity_2m<-1-fulldata$diversity_2m
+fulldata$diversitydummy<-0
+fulldata[which(!is.na(fulldata$diversity_2m)),]$diversitydummy<-1
+
+m1<- selection( diversitydummy ~ 
+tempfirstmin +tempsecondmin,
+
+testapplication~
+diversity_2m+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month),
+data = fulldata, method = "2step" )
+
+mm<-summary(m1)
+
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$estimate)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("R square", round( 
+as.numeric(as.matrix(mm$rSquared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
+
+
+write.table(fulldata,file="Fulldata_20180729.csv",sep=",",row.names=FALSE)
+
+
+*********************************************
+write tables
+***********************************************
+mm<-summary(m1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients$count)),
+data.frame(cleardata(mm$coefficients$zero)),
+data.frame(cbind("Obs.",sum( mm$n))),
+data.frame(cbind("log lik.", round( 
+as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
