@@ -2923,3 +2923,22 @@ as.numeric(as.matrix(mm$loglik) ),digits=2) ))
 )
 )
 ,type="html",file="numfundingzipsubset1.html")
+
+
+******************************************
+20180730 Add Final Figures
+*********************************************
+fulldata<-read.table("Fulldata_20180729.csv",sep=",",header=TRUE)
+
+addup<-function(input){
+return(sum(input[,5]))
+}
+library(plyr)
+results<-ddply(fulldata,.(year, month),addup)
+
+#draw interaction
+
+
+
+
+
