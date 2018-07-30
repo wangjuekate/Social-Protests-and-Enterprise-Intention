@@ -1,7 +1,7 @@
-sum testapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply accidents_4m dronemanufacture logpilots  citysecurity cityprivacy california gdppercap newtotalpop
+sum testapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply accidents_4m dronemanufacture logpilots  citysecurity cityprivacy california gdppercap newtotalpop tempfirstmin rainfall
 
 
-cor testapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply accidents_4m dronemanufacture logpilots  citysecurity cityprivacy california gdppercap newtotalpop
+cor testapplication countymili_600d radicalmili_600d antisurveillance radicalcounty_4m cumuapply accidents_4m dronemanufacture logpilots  citysecurity cityprivacy california gdppercap newtotalpop tempfirstmin rainfall
 
 
 gen antisurveillance= statesur_600d+countysur_600d+nationsur_600d
