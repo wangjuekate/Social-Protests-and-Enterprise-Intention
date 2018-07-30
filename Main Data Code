@@ -2939,6 +2939,60 @@ results<-ddply(fulldata,.(year, month),addup)
 #draw interaction
 
 
+library(pscl)
+antisurveillance*radicalmili_600d+
+antisurveillanceresidual+
+
+
+m1<-zeroinfl(testapplication~
+antisurveillance*radicalcounty_4m+
+antisurveillanceresidual+
+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE,x=TRUE) 
+ 
+ 
+summary(m1)
+
+
+**************************************
+Draw Interaction Effect
+*********************************************
+results1<-m1
+
+coefficients<- results1$coefficients$count
+meanofvariable<-colMeans(results1$x$count)
+
+mm<-matrix(0,nrow=2, ncol=8)
+for(i in 1:2){
+for(j in 1:8){
+meanofvariable[2]<-i-1
+meanofvariable[3]<-j-1
+meanofvariable[length(meanofvariable)]<-(i-1)*(j-1)
+mm[i,j]<-exp(t(coefficients)%*%meanofvariable)
+}}
+
+write.table(mm,file="graph1.csv",sep=",",row.names=FALSE)
+
+****************************
+
 
 
 
