@@ -3328,3 +3328,619 @@ The F-test you refer to also is related to the first stage, i.e. the regression 
 
 Stock J, Yogo M. Testing for Weak Instruments in Linear IV Regression. In Andrews DWK Identification and Inference for Econometric Models New York: Cambridge University Press; 2005. pp. 80
 
+
+************************
+
+Amended code 20180801
+************************
+
+
+#Test the strength of instrumental variable
+fulldata<-read.table("Fulldata_20180729.csv",sep=",",header=TRUE)
+
+
+#instrumental variable
+
+
+ library(rsq)
+ results1<-lm(countymili_600d~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(countymili_600d~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(countymili_600d~tempfirstmin,data=fulldata)
+
+results3<-lm(countymili_600d~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+fulldata$countymiliresidual<-(results2$residual-mean(results2$residual))/sd(results2$residual)
+fulldata$countymili_600d_test<-(fulldata$countymili_600d-mean(fulldata$countymili_600d
+))/sd(fulldata$countymili_600d)
+
+cor(fulldata$countymiliresidual, fulldata$countymili_600d)
+
+ results1<-lm(radicalmili_600d~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(radicalmili_600d~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(radicalmili_600d~tempfirstmin,data=fulldata)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+results3<-lm(radicalmili_600d~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+fulldata$radicalmiliresidual<-(results3$residual-mean(results3$residual))/sd(results3$residual)
+fulldata$radicalmili_600d_test<-(fulldata$radicalmili_600d-mean(fulldata$radicalmili_600d))/sd(fulldata$radicalmili_600d)
+
+cor(fulldata$radicalmili_600d_test, fulldata$radicalmiliresidual)
+
+
+
+ results1<-lm(antisurveillance~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(antisurveillance~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(antisurveillance~tempfirstmin,data=fulldata)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+results3<-lm(antisurveillance~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+
+fulldata$antisurveillanceresidual<-(results1$residual-mean(results1$residual))/sd(results1$residual)
+
+fulldata$antisurveillance_test<-(fulldata$antisurveillance-
+mean(fulldata$antisurveillance))/sd(fulldata$antisurveillance)
+
+cor(fulldata$radicalcounty_4m_test, fulldata$antisurveillance)
+
+ results1<-lm(radicalcounty_4m~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(radicalcounty_4m~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(radicalcounty_4m~tempfirstmin,data=fulldata)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+results3<-lm(radicalcounty_4m~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+
+fulldata$radicalsurveilresidual<-(results2$residual-mean(results2$residual))/sd(results2$residual)
+
+fulldata$radicalcounty_4m_test<-(fulldata$radicalcounty_4m-mean(fulldata$radicalcounty_4m))/sd(fulldata$radicalcounty_4m)
+
+
+install.packages("rsq")
+
+library(pscl)
+countymili_600d_test*radicalmili_600d_test+
+countymiliresidual+
+
+ radicalcounty_4m+
+antisurveillance_test*radicalcounty_4m+
+antisurveillanceresidual+
+countymili_600d_test*radicalmili_600d_test+
+countymiliresidual+
+
+m1<-zeroinfl(testapplication~
+ radicalcounty_4m+
+ radicalmiliresidual+
+ radicalmili_600d_test+
+countymili_600d_test+
+countymiliresidual+
+
+radicalsurveilresidual+
+antisurveillance_test+
+antisurveillanceresidual+
+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE,x=TRUE) 
+ 
+ 
+summary(m1)
+
+#redraw the interaction
+results1<-m1
+coefficients<- results1$coefficients$count
+meanofvariable<-colMeans(results1$x$count)
+
+mm<-matrix(0,nrow=2, ncol=8)
+for(i in 1:2){
+for(j in 1:8){
+meanofvariable[2]<-i-1
+meanofvariable[3]<-j-1
+meanofvariable[length(meanofvariable)]<-(i-1)*(j-1)
+mm[i,j]<-exp(t(coefficients)%*%meanofvariable)
+}}
+
+write.table(mm,file="graph1.csv",sep=",",row.names=FALSE)
+
+*******************************************
+calculate diversity
+******************************************
+
+diveristycal<-function(input){
+n<-length(input)
+if(sum(input[5:n])!=0){
+output<- -sum((input[5:n]/sum(input[5:n]))*log(input[5:n]/sum(input[5:n])+1))
+}else{
+output<-NA
+}
+return(output)
+}
+diversity<-fulldata[,1:4]
+
+
+diversity$countysur_600d<-fulldata$countysur_600d
+
+diversity$radicalmili_600d<-fulldata$radicalmili_600d
+diversity$radicalcounty_4m<-fulldata$radicalcounty_4m
+
+diversity$countymili_600d<-fulldata$countymili_600d
+
+
+results<-apply(diversity,1,diveristycal)
+
+fulldata$diversity_test<-results
+
+
+library(sampleSelection)
+
+fulldata$diversitydummy<-0
+fulldata[which(!is.na(fulldata$diversity_test)),]$diversitydummy<-1
+
+m1<- selection( diversitydummy ~ 
+tempfirstmin +tempsecondmin+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply,
+
+testapplication~
+diversity_test+
+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(year)+
+as.character(month)+statefips,
+data = fulldata, method = "2step" )
+
+mm<-summary(m1)
+
+
+
+
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$estimate)),
+data.frame(cbind("Obs.",nrow(fulldata))),
+data.frame(cbind("R square", round( 
+as.numeric(as.matrix(mm$rSquared) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
+#######################################################
+ 
+ radicalcounty_4m_test+
+antisurveillance_test*radicalcounty_4m_test+
+
+
+
+ countymili_600d+
+countymiliresidual+
+
+radicalmili_600d+
+radicalmiliresidual+
+radicalmili_600d_test+
+radicalmiliresidual+
+
+antisurveillance+
+antisurveillanceresidual+
+
+radicalcounty_4m+
+radicalsurveilresidual+
+radicalcounty_4m_test+
+radicalsurveilresidual+
+
+library(foreign)
+library(pscl)
+require(ffbase)
+require(LaF)
+require(ETLUtils)
+library(xtable)
+require(biglm)
+library(psych)
+
+library(xtable)
+
+
+cleardata<-function(input){
+names<-rownames(input)
+final<-matrix("",nrow=nrow(input)*2,ncol=2)
+j=1
+for(i in 1:nrow(input)){
+st<-paste("(",round(as.numeric(as.matrix(input[i,2])),digits=3),")",sep="")
+if(!is.na(input[i,4])){
+if(as.numeric(input[i,4])<=0.001){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"***",sep="")
+}
+if(as.numeric(input[i,4]<=0.01&as.numeric(input[i,4])>0.001 )){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"**",sep="")
+}
+if(as.numeric(input[i,4]<=0.05&&as.numeric(input[i,4])>0.01)){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"*",sep="")
+}
+if(as.numeric(input[i,4]<=0.1&&as.numeric(input[i,4])>0.05)){
+coe<-paste(round(as.numeric(input[i,1]),digits=3),"+",sep="")
+}
+if(as.numeric(input[i,4])>0.1){
+coe<-round(as.numeric(input[i,1]),digits=3)}
+}else{
+coe<-"NA"
+}
+final[j,1]<-names[i]
+final[j,2]<-coe
+final[j+1,2]<-st
+j<-j+2
+}
+return(final)
+}
+
+
+# write zero inflation model
+mm<-summary(m1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients$count)),
+data.frame(cleardata(mm$coefficients$zero)),
+data.frame(cbind("Obs.",sum( mm$n))),
+data.frame(cbind("log lik.", round( 
+as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
+
+#write summary Table
+#construct subdata set for summary
+data<-fulldata[,1:4]
+
+data$testapplication<-fulldata$testapplication
+data$radicalcounty_4m<-fulldata$radicalcounty_4m
+data$antisurveillance<-fulldata$antisurveillance
+data$radicalmili_600d<-fulldata$radicalmili_600d
+data$countymili_600d<-fulldata$countymili_600d
+data$diversity_test<-fulldata$diversity_test
+data$tempfirstmin<-fulldata$tempfirstmin
+data$rainfall<-fulldata$rainfall
+data$gdppercap<-fulldata$gdppercap
+
+data$newtotalpop<-fulldata$newtotalpop
+data$dronemanufacture<-fulldata$dronemanufacture
+data$logpilots<-fulldata$logpilots
+data$citysecurity<-fulldata$citysecurity
+data$cityprivacy<-fulldata$cityprivacy
+data$accidents_4m<-fulldata$accidents_4m
+data$cumuapply<-fulldata$cumuapply
+
+matrixfinal<-cor(data)
+
+matrixfinal[upper.tri(matrixfinal,diag=TRUE)]<-""
+
+print.xtable(xtable(matrixfinal),type="html",file="Correlation.html")
+
+print.xtable(xtable(data.frame(describe(
+data))),type="html",file="Countysummary.html")
+
+
+
+
+
+The R-squared you refer to is usually a partial R-squared, i.e. the "squared partial correlation" between the excluded instruments and the endogenous regressor. The relevant reference for this test would be
+
+Shea, J., 1997, "Instrument Relevance in Multivariate Linear Models: A Simple Measure", Review of Economics and Statistics, Vol. 79, No. 2, May, 348-352
+
+From there you will also see how to get the critical values for the test. Some statistical software like Stata produce these values automatically like the command ivreg2, for instance.
+
+The F-test you refer to also is related to the first stage, i.e. the regression of your endogenous variable on the instrument(s) and the exogenous variables. In case of one instrument, the F-statistic is the t-statistic squared. As a rule of thumb you should be worried about weak instruments if your F-statistic is below 10. The reference is
+
+Stock J, Yogo M. Testing for Weak Instruments in Linear IV Regression. In Andrews DWK Identification and Inference for Econometric Models New York: Cambridge University Press; 2005. pp. 80
+
+
+
+library(nlWaldTest)
+library(matrixStats)
+mm<- m1$vcov[1:length(m1$coefficients$count),1:length(m1$coefficients$count)]
+
+mm<-matrix(0,nrow=2,ncol=2)
+mm[1,1]<-1.005
+mm[2,2]<-0.104
+coeff<-c(-5.4,-0.3)
+nlWaldtest(texts="b[1]-b[2]=0.1", coeff=coeff, Vcov=mm)
+
+fulldata<-read.table("Fulldata_20180801.csv",sep=",",header=TRUE)
+
+mm<-matrix(0,nrow=2,ncol=2)
+mm[1,1]<-2.1
+mm[2,2]<-0.05
+coeff<-c(-4.5,-0.1)
+nlWaldtest(texts="b[1]-b[2]=0.1", coeff=coeff, Vcov=mm)
+
+
+
+*****************************
+combine two protests together
+
+******************************
+
+fulldata<-read.table("Fulldata_20180801.csv",sep=",",header=TRUE)
+
+fulldata$combinemoderateprotest<-fulldata$countymili_600d+fulldata$antisurveillance
+fulldata$combineradicalprotest<-fulldata$radicalcounty_4m+fulldata$radicalmili_600d
+
+ results1<-lm(combineradicalprotest~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(combineradicalprotest~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(combineradicalprotest~tempfirstmin,data=fulldata)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+results3<-lm(combineradicalprotest~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+
+
+
+fulldata$radicalresidual<-(results2$residual-mean(results2$residual))/sd(results2$residual)
+
+fulldata$radical_test<-(fulldata$combineradicalprotest-mean(fulldata$combineradicalprotest))/sd(fulldata$combineradicalprotest)
+
+
+ results1<-lm(combinemoderateprotest~tempfirstmin +tempsecondmin+rainfall,data=fulldata)
+results2<-lm(combinemoderateprotest~tempfirstmin +tempsecondmin,data=fulldata)
+results3<-lm(combinemoderateprotest~tempfirstmin,data=fulldata)
+library(rsq)
+rsq.partial(results1,results2)
+rsq.partial(results3,results2)
+
+results3<-lm(combinemoderateprotest~tempfirstmin+as.character(statefips)+as.character(newid),data=fulldata)
+
+
+
+fulldata$moderateresidual<-(results1$residual-mean(results1$residual))/sd(results1$residual)
+
+fulldata$moderate_test<-(fulldata$combinemoderateprotest-mean(fulldata$combinemoderateprotest))/sd(fulldata$combinemoderateprotest)
+
+
+library(pscl)
+
+radical_test+
+radicalresidual+
+
+m1<-zeroinfl(testapplication~
+moderate_test*combineradicalprotest+
+moderateresidual+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(month)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE,x=TRUE) 
+ 
+ 
+summary(m1)
+
+****************************
+Summary Table
+*****************************
+
+data<-fulldata[,1:4]
+
+data$testapplication<-fulldata$testapplication
+data$combinemoderateprotest<-fulldata$combinemoderateprotest
+data$combineradicalprotest<-fulldata$combineradicalprotest
+data$radicalmili_600d<-fulldata$radicalmili_600d
+data$countymili_600d<-fulldata$countymili_600d
+data$diversity_test<-fulldata$diversity_test
+data$tempfirstmin<-fulldata$tempfirstmin
+data$rainfall<-fulldata$rainfall
+data$gdppercap<-fulldata$gdppercap
+
+data$newtotalpop<-fulldata$newtotalpop
+data$dronemanufacture<-fulldata$dronemanufacture
+data$logpilots<-fulldata$logpilots
+data$citysecurity<-fulldata$citysecurity
+data$cityprivacy<-fulldata$cityprivacy
+data$accidents_4m<-fulldata$accidents_4m
+data$cumuapply<-fulldata$cumuapply
+
+matrixfinal<-cor(data)
+
+matrixfinal[upper.tri(matrixfinal,diag=TRUE)]<-""
+
+print.xtable(xtable(matrixfinal),type="html",file="Correlation.html")
+
+print.xtable(xtable(data.frame(describe(
+data))),type="html",file="Countysummary.html")
+
+
+********************
+average treatment effect
+
+**********************
+
+countymili<-read.table("Moderate.csv",sep=",",header=TRUE)
+
+countymili<-read.table("Radical.csv",sep=",",header=TRUE)
+
+
+library(matrixStats)
+
+countymili<-unique(countymili)
+countymili$countymili<-1
+
+fulldata<-fulldata[,1:99]
+fulldata<-merge(fulldata,countymili,by.x=c("statefips", "year", "month", "countyfips"),
+by.y=c("statefips", "year", "month","countyfips"),all.x=TRUE)
+
+fulldata[which(is.na(fulldata$countymili)),]$countymili<-0
+
+countymili$date<-as.Date(paste(countymili$year,countymili$month,"01",sep="-"))
+fulldata$date<-as.Date(paste(fulldata$year,fulldata$month,"01",sep="-"))
+
+results<-glm(countymili~tempfirstmin+
+tempsecondmin+
+gdppercap+
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply
+,data=fulldata,family = binomial)
+
+fulldata$probabilitymili<-results$fitted.values
+
+mm<-matrix(0,nrow=nrow(countymili),ncol=4)
+
+for(i in 1:nrow(countymili)){
+
+address1<-which(
+as.Date(fulldata[,101])<as.Date(countymili[i,6]) & 
+as.Date(fulldata[,101])>(as.Date(countymili[i,6])-120) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+address2<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])-120) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))!=as.numeric(as.matrix(countymili[i,2])))
+
+
+address3<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]+120) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+address4<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]+120) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))!=as.numeric(as.matrix(countymili[i,2])))
+
+
+
+if(length(address1)!=0 &length(address2)!=0 &length(address3)!=0 &length(address4)!=0  ){
+mm[i,1]<-sum(fulldata[address1,]$testapplication)
+mm[i,2]<-sum(fulldata[address2,]$testapplication%*%fulldata[address2,]$probabilitymili)
+mm[i,3]<-sum(fulldata[address3,]$testapplication)
+
+mm[i,4]<-sum(fulldata[address4,]$testapplication%*%fulldata[address4,]$probabilitymili)
+}
+
+}
+output<-mm[which(mm[,3]<mm[,1]|mm[,3]==mm[,1]),]
+rbind(colMeans(output),colVars(output))
+
+write.table(rbind(colMeans(output),colVars(output)),file="test.csv",sep=",",row.names=FALSE)
+
+*****************************
+Randomize to test p value
+
+******************************
+
+statecounty<-fulldata[,1:2]
+statecounty$countyfips<-fulldata$countyfips
+statecounty$year<-NULL
+statecounty<-unique(statecounty)
+
+runsimulation<-function(countymili,n,statecounty,fulldata){
+
+k<-matrix(0,nrow=1, ncol=n)
+
+for(i in 1:n){
+
+address<-sample(1:nrow(statecounty),nrow(countymili))
+countymili$statefips<-statecounty[address,]$statefips
+countymili$countyfips<-statecounty[address,]$countyfips
+
+#random sampling and calculate the treatment effect
+mm<-matrix(0,nrow=nrow(countymili),ncol=2)
+
+for(i in 1:nrow(countymili)){
+
+address1<-which(
+as.Date(fulldata[,101])<as.Date(countymili[i,6]) & 
+as.Date(fulldata[,101])>(as.Date(countymili[i,6])-120) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+
+address3<-which(
+as.Date(fulldata$date)<as.Date(countymili[i,6]+120) & 
+as.Date(fulldata$date)>(as.Date(countymili[i,6])) 
+&as.numeric(as.matrix(fulldata[,1]))==as.numeric(as.matrix(countymili[i,1]))
+&as.numeric(as.matrix(fulldata[,4]))==as.numeric(as.matrix(countymili[i,2])))
+
+
+
+if(length(address1)!=0 &length(address3)!=0 ){
+mm[i,1]<-sum(fulldata[address1,]$testapplication)
+
+mm[i,2]<-sum(fulldata[address3,]$testapplication)
+
+
+}
+
+}
+
+output<-mm[,2]-mm[,1]
+k[i]<-mean(output)
+
+}
+k<-k[which(!is.na(k))]
+mean<-mean(k,na.rm=TRUE)
+var<-mean(var(k,na.rm=TRUE),na.rm=TRUE)
+
+output<-data.frame(mean)
+output<-cbind(output,var)
+return(output)
+}
+time<-proc.time()
+results<-runsimulation(countymili, 1000,statecounty,fulldata)
+proc.time()-time
+results<-c(-5e-05, 2.5e-06)
+
+z <- (-0.33-results[1])/(sqrt(results[2])/sqrt(nrow(fulldata)))
+2*pnorm(-abs(z))
