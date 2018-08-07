@@ -3944,3 +3944,136 @@ results<-c(-5e-05, 2.5e-06)
 
 z <- (-0.33-results[1])/(sqrt(results[2])/sqrt(nrow(fulldata)))
 2*pnorm(-abs(z))
+
+
+
+fulldata<-read.table("Fulldata_20180801.csv",sep=",",header=TRUE)
+
+
+
+library(plm)
+results1<-plm(countymili_600d~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results2<-plm(radicalmili_600d~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results3<-plm(antisurveillance~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results4<-plm(radicalcounty_4m~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results5<-plm(intermili~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results6<-plm(intersurv~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$intermili<- fulldata$countymili_600d*fulldata$radicalmili_600d
+
+fulldata$intersurv<- fulldata$antisurveillance*fulldata$radicalcounty_4m
+
+fulldata$intermiliIV<- fulldata$intermili-results5$residuals
+
+fulldata$intersurvIV<- fulldata$intersurv-results6$residuals
+
+fulldata$countymiliIV<-fulldata$countymili_600d- results1$residuals
+
+fulldata$radicalmiliIV<-fulldata$radicalmili_600d- results2$residuals
+
+fulldata$surviallanceIV<-fulldata$antisurveillance- results3$residuals
+
+fulldata$radicalsurvIV<-fulldata$radicalcounty_4m- results4$residuals
+
+
+fulldata$combineradicalprotest<-fulldata$radicalcounty_4m+fulldata$radicalmili_600d
+
+fulldata$combinemoderateprotest<-fulldata$countymili_600d+fulldata$antisurveillance
+
+fulldata$interactradicalmoderate<-fulldata$combineradicalprotest*fulldata$combinemoderateprotest
+
+results7<-plm(combineradicalprotest~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results8<-plm(combinemoderateprotest~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+results9<-plm(interactradicalmoderate~tempfirstmin +tempsecondmin+ rainfall,data=fulldata, model ="within",
+index = c("statecountycluster","newid"))
+
+fulldata$combinradicalIV<-fulldata$combineradicalprotest- results7$residuals
+
+fulldata$combinmoderateIV<-fulldata$combinemoderateprotest- results8$residuals
+
+fulldata$interactramoIV<-fulldata$interactradicalmoderate-results9$residuals
+
+
+countymiliIV+
+radicalmiliIV+
+surviallanceIV+
+radicalsurvIV+
+intermiliIV+
+intersurvIV+
+
+
+library(pscl)
+m1<-zeroinfl(testapplication~
+combinradicalIV+
+combinmoderateIV+
+interactramoIV+
+  gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(month)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
+
+
+
+
+cor(fulldata$combinradicalIV,fulldata$combinmoderateIV)
+
+
+library(pscl)
+m1<-zeroinfl(testapplication~
+combineradicalprotest+
+combinemoderateprotest+
+  gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(month)+
+as.character(statefips)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson", EM = TRUE) 
+ 
+ 
+summary(m1)
