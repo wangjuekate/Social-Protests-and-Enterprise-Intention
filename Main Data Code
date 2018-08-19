@@ -4213,3 +4213,196 @@ newtotalpop
  
  
 summary(m1)
+
+
+********************************************
+2018/8/19 Bayesian analyses to confirm the robustness
+
+****************************************************
+
+
+# use Bayesian to estimate the two stage IV 
+
+fulldata<-read.table("Fulldata_20180801.csv",sep=",",header=TRUE)
+
+addup<-function(input){
+return(sum(input[,93]))
+}
+library(plyr)
+results<-ddply(fulldata,.(statefips,countyfips),addup)
+
+
+library(MCMCglmm)
+
+fulldata$radicalsurvtest<-fulldata$radicalcounty_3m
+fulldata$moderatesurvtest<-fulldata$antisurveillance 
+fulldata$radicalmili<-fulldata$radicalmili_600d
+fulldata$moderatemili<-fulldata$countymili_600d
+
+fulldata$security<-fulldata$statesecurity+fulldata$citysecurity
+fulldata$privacy<-fulldata$stateprivacy+fulldata$cityprivacy
+
+
+
+results<-MCMCglmm(cbind(radicalmili_600d, countymili_600d,radicalcounty_3m,antisurveillance ,testapplication)~
+at.level(trait,1):tempfirstmin +
+at.level(trait,1):tempsecondmin+
+at.level(trait,1):rainfall+
+at.level(trait,1):as.character(year)+
+
+
+at.level(trait,2):tempfirstmin +
+at.level(trait,2):tempsecondmin+
+at.level(trait,2):rainfall+
+at.level(trait,2):as.character(year)+
+
+
+
+
+at.level(trait,3):tempfirstmin +
+at.level(trait,3):tempsecondmin+
+at.level(trait,3):rainfall+
+at.level(trait,3):as.character(year)+
+
+at.level(trait,4):tempfirstmin +
+at.level(trait,4):tempsecondmin+
+at.level(trait,4):rainfall+
+at.level(trait,4):as.character(year)+
+
+
+at.level(trait,5):moderatemili+
+at.level(trait,5):radicalmili+
+
+at.level(trait,5):moderatesurvtest+
+at.level(trait,5):radicalsurvtest+
+
+at.level(trait,5):radicalsurvtest*at.level(trait,5):moderatesurvtest+
+
+at.level(trait,5):gdppercap  +
+at.level(trait,5):Totalpop+
+at.level(trait,5):dronemanufacture+
+at.level(trait,5):logpilots+
+at.level(trait,5):security+
+at.level(trait,5):privacy+
+at.level(trait,5):accidents_1m+
+at.level(trait,5):cumuapply+
+
+at.level(trait,5):as.character(year)+
+
+at.level(trait,6):dronemanufacture+
+at.level(trait,6):logpilots+
+at.level(trait,6):security+
+at.level(trait,6):privacy+
+at.level(trait,6):california  +
+at.level(trait,6):gdppercap  +
+at.level(trait,6):Totalpop,
+random =~us(trait):statecountycluster,
+rcov= ~us(trait):units, 
+family =c("poisson","poisson","poisson","poisson","zipoisson"),
+nitt=4000,burnin=3000,thin=25,data=fulldata)
+summary(results)
+
+
+at.level(trait,5):radicalmiliIV+
+at.level(trait,5):countymiliIV+
+at.level(trait,5):radicalsurvIV+
+at.level(trait,5):surviallanceIV+
+
+
+fulldata$crtest<-fulldata$combineradicalprotest
+fulldata$cmtest<-fulldata$combinemoderateprotest
+
+
+results<-MCMCglmm(cbind(combineradicalprotest,combinemoderateprotest ,testapplication)~
+at.level(trait,1):tempfirstmin +
+at.level(trait,1):tempsecondmin+
+at.level(trait,1):rainfall+
+at.level(trait,1):as.character(year)+
+
+
+at.level(trait,2):tempfirstmin +
+at.level(trait,2):tempsecondmin+
+at.level(trait,2):rainfall+
+at.level(trait,2):as.character(year)+
+
+
+
+at.level(trait,3):crtest+
+at.level(trait,3):cmtest+
+
+at.level(trait,3):crtest*at.level(trait,3):cmtest+
+
+at.level(trait,3):gdppercap  +
+at.level(trait,3):Totalpop+
+at.level(trait,3):dronemanufacture+
+at.level(trait,3):logpilots+
+at.level(trait,3):security+
+at.level(trait,3):privacy+
+at.level(trait,3):accidents_1m+
+at.level(trait,3):cumuapply+
+
+at.level(trait,3):as.character(year)+
+
+at.level(trait,4):dronemanufacture+
+at.level(trait,4):logpilots+
+at.level(trait,4):security+
+at.level(trait,4):privacy+
+at.level(trait,4):california  +
+at.level(trait,4):gdppercap  +
+at.level(trait,4):Totalpop,
+random =~us(trait):statecountycluster,
+rcov= ~us(trait):units, 
+family =c("poisson","poisson","zipoisson"),
+nitt=4000,burnin=3000,thin=25,data=fulldata)
+summary(results)
+
+
+
+combineradicalprotest+
+combinemoderateprotest+
+
+
+
+
+
+combinradicalIV+
+combinmoderateIV+
+interactramoIV+
+
+library(pscl)
+m1<-zeroinfl(testapplication~
+
+  gdppercap  +
+newtotalpop+
+dronemanufacture+
+logpilots+
+citysecurity+
+ cityprivacy+
+accidents_4m+
+cumuapply+
+as.character(month)
+|
+dronemanufacture+
+logpilots+
+statesecurity+
+ stateprivacy+ 
+california+  
+gdppercap +
+newtotalpop 
+ , data=fulldata, dist = "poisson",link = "probit", EM = TRUE) 
+ 
+ 
+summary(m1)
+
+
+
+mm<-summary(m1)
+print.xtable(xtable(
+rbind(data.frame(cleardata(mm$coefficients$count)),
+data.frame(cleardata(mm$coefficients$zero)),
+data.frame(cbind("Obs.",sum( mm$n))),
+data.frame(cbind("log lik.", round( 
+as.numeric(as.matrix(mm$loglik) ),digits=2) ))
+)
+)
+,type="html",file="numfundingzipsubset1.html")
