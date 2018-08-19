@@ -4167,8 +4167,7 @@ citysecurity+
  cityprivacy+
 accidents_4m+
 cumuapply+
-as.character(month)+
-as.character(statefips)
+as.character(month)
 |
 dronemanufacture+
 logpilots+
@@ -4177,7 +4176,7 @@ statesecurity+
 california+  
 gdppercap +
 newtotalpop 
- , data=fulldata, dist = "poisson", link ="probit",EM = TRUE) 
+ , data=fulldata, dist = "poisson",link = "probit", EM = TRUE) 
  
  
 summary(m1)
