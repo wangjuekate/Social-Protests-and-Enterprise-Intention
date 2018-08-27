@@ -4427,4 +4427,6 @@ di 2*(m2-m1)
 di chi2tail(2,2*(m2-m1))
 esttab model1  model2  using ier.rtf, b(3) se(3) sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
 
-
+replace diversity_test="." if diversity_test =="NA"
+destring diversity_test, replace
+replace testapplication =. if diversitydummy==0
