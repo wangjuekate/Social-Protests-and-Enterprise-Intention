@@ -4406,3 +4406,25 @@ as.numeric(as.matrix(mm$loglik) ),digits=2) ))
 )
 )
 ,type="html",file="numfundingzipsubset1.html")
+
+
+
+heckman logtestapplication diversity_test gdppercap newtotalpop dronemanufacture logpilots citysecurity  cityprivacy accidents_4m cumuapply i.(month) i.(statefips), select(tempfirstmin tempsecondmin ) iter(30)
+
+scalar m1 = e(ll)
+
+est sto model1
+
+heckman logtestapplication  gdppercap newtotalpop dronemanufacture logpilots citysecurity  cityprivacy accidents_4m cumuapply i.(month) i.(statefips), select(tempfirstmin tempsecondmin ) iter(30)
+
+nbreg testapplication gdppercap newtotalpop dronemanufacture logpilots citysecurity  cityprivacy accidents_4m cumuapply i.(month) i.(statefips), iter(30)
+
+scalar m2= e(ll)
+
+est sto model2
+
+di 2*(m2-m1)
+di chi2tail(2,2*(m2-m1))
+esttab model1  model2  using ier.rtf, b(3) se(3) sca(ll) star(* 0.05 ** 0.01 *** 0.001) replace
+
+
